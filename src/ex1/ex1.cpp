@@ -77,6 +77,11 @@ void makeTranslationMatrix(string& filename, Mat transformationMatrix)  // Funct
     hconcat(rotationMatrix, translationMatrix, transformationMatrix);   // Concatenate the rotation matrix and the translation vector to the transformation matrix
 }
 
+void projectPoints(Mat& projectionMatrix, Mat pointCoordinates)
+{
+    
+}
+
 int main(int argc, char** argv)
 {
     Mat image = imread(datapath + "images_undistorted/img_0001.jpg");   // Define image in file

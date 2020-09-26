@@ -6,6 +6,6 @@ find_package( OpenCV REQUIRED )
 
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
-add_executable( findcheckerboard src/ex1/findcheckerboard.cpp )
+add_executable( ex1 src/ex1/ex1.cpp )
 
-target_link_libraries( findcheckerboard ${OpenCV_LIBS} )
+target_link_libraries( ex1 ${OpenCV_LIBS} )
