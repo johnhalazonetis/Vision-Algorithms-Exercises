@@ -16,7 +16,31 @@ const Size chessboardDimensions = Size(6, 9);       // Number of square on chess
 
 const string datapath = "/home/john/Nextcloud/Me/ETH/Master 4 (Fall 2020)/Vision Algorithms/Exercises/Exercise 1 - Augmented Reality Wireframe Cube/data/";
 
-int main(int argc, char** argv) {
+void readCalibrationMatrix()
+{
+    ifstream file;
+    file.open (datapath + "K.txt");
+    if (!file.is_open()) return;
+
+    double value;
+    int rows = 3, cols = 3;
+    Mat calibrationMatrix = Mat::zeros(rows, cols, CV_64F);
+    
+    for (int r = 0; r < rows; r++)
+    {
+        for (int c = 0; c < cols; c++)
+        {
+            file >> value;
+            calibrationMatrix.at<double>(r, c) = value;
+            cout << calibrationMatrix.at<double>(r, c) << endl;
+        }
+        
+    }
+    
+}
+
+int main(int argc, char** argv)
+{
     Mat image = imread(datapath + "images_undistorted/img_0001.jpg");
 
     if (!image.data)
@@ -24,6 +48,9 @@ int main(int argc, char** argv) {
         printf("No image data \n");
         return -1;
     }
+
+    readCalibrationMatrix();
+
 
     namedWindow("Display Image", WINDOW_KEEPRATIO);
     imshow("Display Image", image);
