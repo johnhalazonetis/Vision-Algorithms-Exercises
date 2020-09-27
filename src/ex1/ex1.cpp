@@ -10,12 +10,12 @@
 using namespace std;
 using namespace cv;
 
-const float arucoSquareDimension = 0.04f;           // Dimension of side of one aruco square [m]
+const float chessboardSquareDimension = 0.04f;      // Dimension of side of one aruco square [m]
 const Size chessboardDimensions = Size(6, 9);       // Number of square on chessboard calibration page
 
 const string datapath = "/home/john/Nextcloud/Me/ETH/Master 4 (Fall 2020)/Vision Algorithms/Exercises/Exercise 1 - Augmented Reality Wireframe Cube/data/";     // Define path to data (for exercise 1)
 
-void readCalibrationMatrix(string& filename, Mat calibrationMatrix)     // Function to read calibration matrix from txt file
+void readCalibrationMatrix(string& filename, Mat calibrationMatrix)         // Function to read calibration matrix from txt file
 {
     ifstream file;                                                      // Make an inward stream of data called 'file'
     file.open (datapath + filename);                                    // Open the file in question (we sum up the datapath and the filename)
@@ -32,7 +32,7 @@ void readCalibrationMatrix(string& filename, Mat calibrationMatrix)     // Funct
     }
 }
 
-void makeTransforationMatrix(string& filename, Mat transformationMatrix)  // Function to get the poses from a text file and make a transformation matrix
+void makeTransforationMatrix(string& filename, Mat transformationMatrix)    // Function to get the poses from a text file and make a transformation matrix
 {
     ifstream file;                                                      // Make an inward stream of data called 'file'
     file.open (datapath + filename);                                    // Open the file in question (we sum up the datapath and the filename)
@@ -113,9 +113,37 @@ void projectPoints(Mat& calibrationMatrix, Mat& transformationMatrix, Mat& input
     outputCameraPoints.at<double>(1, 0) = cameraCoordinate1;            // Input integer values to output camera coordinates vector
 }
 
+void drawCube(Mat& image, Mat& cubeOrigin, float& length, Mat& calibrationMatrix, Mat& transformationMatrix, bool& lensDistortion)                 // Function to draw a cube on top of the current frame
+{
+    // Start by computing the position of the other 7 points in the world frame (keeping all of the same edge lengths)
+    Mat cubeWorldCorners(3, 8, CV_64F);
+    cubeWorldCorners.col(0) = cubeOrigin;
+    cubeWorldCorners.col(1) = cubeOrigin + length * Mat::eye(3, 3, CV_64F).col(0);
+    cubeWorldCorners.col(2) = cubeOrigin + length * Mat::eye(3, 3, CV_64F).col(1);
+    cubeWorldCorners.col(3) = cubeOrigin + length * Mat::eye(3, 3, CV_64F).col(0) + length * Mat::eye(3, 3, CV_64F).col(1);
+    cubeWorldCorners.col(4) = cubeOrigin - length * Mat::eye(3, 3, CV_64F).col(2);
+    cubeWorldCorners.col(5) = cubeOrigin + length * Mat::eye(3, 3, CV_64F).col(0) - length * Mat::eye(3, 3, CV_64F).col(2);
+    cubeWorldCorners.col(6) = cubeOrigin + length * Mat::eye(3, 3, CV_64F).col(1) - length * Mat::eye(3, 3, CV_64F).col(2);
+    cubeWorldCorners.col(7) = cubeOrigin + length * Mat::eye(3, 3, CV_64F).col(0) + length * Mat::eye(3, 3, CV_64F).col(1) - length * Mat::eye(3, 3, CV_64F).col(2);
+
+    Mat outputCameraCorners(2, 8, CV_64F);
+    Mat tempInputWorldCoords(3, 1, CV_64F);
+    Mat tempOutputCameraCoords(2, 1, CV_64F);
+    for (int c = 0; c <= 8; c++)
+    {
+        tempInputWorldCoords = cubeWorldCorners.col(c);
+        projectPoints(calibrationMatrix, transformationMatrix, tempInputWorldCoords, lensDistortion, tempOutputCameraCoords);
+        outputCameraCorners.col(c) = tempOutputCameraCoords;
+    }
+
+    cout << outputCameraCorners << endl;
+    
+    //line(image, Point(outputCameraCorners.col(0)), Point(outputCameraCorners.col(1)), Scalar(0, 0, 255), 3, LINE_8);
+}
+
 int main(int argc, char** argv)
 {
-    Mat image = imread(datapath + "images_undistorted/img_0001.jpg");   // Define image in file
+    Mat image = imread(datapath + "images/img_0001.jpg");               // Define image in file
 
     if (!image.data)                                                    // If statement in case the file cannot be opened or does not exist
     {
@@ -136,10 +164,14 @@ int main(int argc, char** argv)
 
     Mat inputWorldPoints = Mat::zeros(3,1, CV_64F);                     // Define input points vector (in world coordinates)
     Mat outputCameraPoints(2, 1, CV_64F);                               // Define output points vector (in camera frame)
-    bool lensDistortion = 0;                                            // Define whether we want to have lens distortion on or off
+    bool lensDistortion = 1;                                            // Define whether we want to have lens distortion on or off
     projectPoints(calibrationMatrix, transformationMatrix, inputWorldPoints, lensDistortion, outputCameraPoints);  // Call function to project points from world frame to camera frame
 
-    cout << outputCameraPoints << endl;
+    circle(image, Point(outputCameraPoints.at<double>(0,0), outputCameraPoints.at<double>(1,0)), 3, Scalar( 0, 0, 255 ), FILLED, LINE_8 );  // Draw point at inputWorldCoordinates
+
+    Mat cubeOrigin = Mat::zeros(3, 1, CV_64F);
+    float length = 0.08f;
+    drawCube(image, cubeOrigin, length, calibrationMatrix, transformationMatrix, lensDistortion);
 
     namedWindow("Display Image", WINDOW_KEEPRATIO);                     // Create window where the ratio of input image is kept
     imshow("Display Image", image);                                     // show the input image
