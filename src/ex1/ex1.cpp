@@ -113,32 +113,61 @@ void projectPoints(Mat& calibrationMatrix, Mat& transformationMatrix, Mat& input
     outputCameraPoints.at<double>(1, 0) = cameraCoordinate1;            // Input integer values to output camera coordinates vector
 }
 
-void drawCube(Mat& image, Mat& cubeOrigin, float& length, Mat& calibrationMatrix, Mat& transformationMatrix, bool& lensDistortion)                 // Function to draw a cube on top of the current frame
+void drawCube(Mat& image, Mat& cubeOrigin, double& length, Mat& calibrationMatrix, Mat& transformationMatrix, bool& lensDistortion)                 // Function to draw a cube on top of the current frame
 {
     // Start by computing the position of the other 7 points in the world frame (keeping all of the same edge lengths)
-    Mat cubeWorldCorners(3, 8, CV_64F);
-    cubeWorldCorners.col(0) = cubeOrigin;
-    cubeWorldCorners.col(1) = cubeOrigin + length * Mat::eye(3, 3, CV_64F).col(0);
-    cubeWorldCorners.col(2) = cubeOrigin + length * Mat::eye(3, 3, CV_64F).col(1);
-    cubeWorldCorners.col(3) = cubeOrigin + length * Mat::eye(3, 3, CV_64F).col(0) + length * Mat::eye(3, 3, CV_64F).col(1);
-    cubeWorldCorners.col(4) = cubeOrigin - length * Mat::eye(3, 3, CV_64F).col(2);
-    cubeWorldCorners.col(5) = cubeOrigin + length * Mat::eye(3, 3, CV_64F).col(0) - length * Mat::eye(3, 3, CV_64F).col(2);
-    cubeWorldCorners.col(6) = cubeOrigin + length * Mat::eye(3, 3, CV_64F).col(1) - length * Mat::eye(3, 3, CV_64F).col(2);
-    cubeWorldCorners.col(7) = cubeOrigin + length * Mat::eye(3, 3, CV_64F).col(0) + length * Mat::eye(3, 3, CV_64F).col(1) - length * Mat::eye(3, 3, CV_64F).col(2);
+    Mat xTranslation = Mat::eye(3, 3, CV_64F).col(0);
+    Mat yTranslation = Mat::eye(3, 3, CV_64F).col(1);
+    Mat zTranslation = Mat::eye(3, 3, CV_64F).col(2);
+    
+    Mat cubeWorldCorners = Mat::zeros(3, 7, CV_64F);
+    cubeWorldCorners.col(0) = cubeOrigin + length * xTranslation;
+    cubeWorldCorners.col(1) = cubeOrigin + length * xTranslation + length * yTranslation;
+    cubeWorldCorners.col(2) = cubeOrigin + length * yTranslation;
+    cubeWorldCorners.col(3) = cubeOrigin - length * zTranslation;
+    cubeWorldCorners.col(4) = cubeOrigin + length * xTranslation - length * zTranslation;
+    cubeWorldCorners.col(5) = cubeOrigin + length * xTranslation + length * yTranslation - length * zTranslation;
+    cubeWorldCorners.col(6) = cubeOrigin + length * yTranslation - length * zTranslation;
+    hconcat(cubeOrigin, cubeWorldCorners, cubeWorldCorners);
 
-    Mat outputCameraCorners(2, 8, CV_64F);
+    Mat outputCameraCorners = Mat::zeros(2, 8, CV_64F);
     Mat tempInputWorldCoords(3, 1, CV_64F);
     Mat tempOutputCameraCoords(2, 1, CV_64F);
-    for (int c = 0; c <= 8; c++)
-    {
-        tempInputWorldCoords = cubeWorldCorners.col(c);
-        projectPoints(calibrationMatrix, transformationMatrix, tempInputWorldCoords, lensDistortion, tempOutputCameraCoords);
-        outputCameraCorners.col(c) = tempOutputCameraCoords;
-    }
-
+    
+    tempInputWorldCoords = cubeWorldCorners.col(0);
+    projectPoints(calibrationMatrix, transformationMatrix, tempInputWorldCoords, lensDistortion, outputCameraCorners.col(0));
+    tempInputWorldCoords = cubeWorldCorners.col(1);
+    projectPoints(calibrationMatrix, transformationMatrix, tempInputWorldCoords, lensDistortion, outputCameraCorners.col(1));
+    tempInputWorldCoords = cubeWorldCorners.col(2);
+    projectPoints(calibrationMatrix, transformationMatrix, tempInputWorldCoords, lensDistortion, outputCameraCorners.col(2));
+    tempInputWorldCoords = cubeWorldCorners.col(3);
+    projectPoints(calibrationMatrix, transformationMatrix, tempInputWorldCoords, lensDistortion, outputCameraCorners.col(3));
+    tempInputWorldCoords = cubeWorldCorners.col(4);
+    projectPoints(calibrationMatrix, transformationMatrix, tempInputWorldCoords, lensDistortion, outputCameraCorners.col(4));
+    tempInputWorldCoords = cubeWorldCorners.col(5);
+    projectPoints(calibrationMatrix, transformationMatrix, tempInputWorldCoords, lensDistortion, outputCameraCorners.col(5));
+    tempInputWorldCoords = cubeWorldCorners.col(6);
+    projectPoints(calibrationMatrix, transformationMatrix, tempInputWorldCoords, lensDistortion, outputCameraCorners.col(6));
+    tempInputWorldCoords = cubeWorldCorners.col(7);
+    projectPoints(calibrationMatrix, transformationMatrix, tempInputWorldCoords, lensDistortion, outputCameraCorners.col(7));
+    
     cout << outputCameraCorners << endl;
     
-    //line(image, Point(outputCameraCorners.col(0)), Point(outputCameraCorners.col(1)), Scalar(0, 0, 255), 3, LINE_8);
+    line(image, Point(outputCameraCorners.col(0)), Point(outputCameraCorners.col(1)), Scalar(0, 0, 255), 2, LINE_8);
+    line(image, Point(outputCameraCorners.col(1)), Point(outputCameraCorners.col(2)), Scalar(0, 0, 255), 2, LINE_8);
+    line(image, Point(outputCameraCorners.col(2)), Point(outputCameraCorners.col(3)), Scalar(0, 0, 255), 2, LINE_8);
+    line(image, Point(outputCameraCorners.col(3)), Point(outputCameraCorners.col(0)), Scalar(0, 0, 255), 2, LINE_8);
+
+    line(image, Point(outputCameraCorners.col(4)), Point(outputCameraCorners.col(5)), Scalar(0, 0, 255), 2, LINE_8);
+    line(image, Point(outputCameraCorners.col(5)), Point(outputCameraCorners.col(6)), Scalar(0, 0, 255), 2, LINE_8);
+    line(image, Point(outputCameraCorners.col(6)), Point(outputCameraCorners.col(7)), Scalar(0, 0, 255), 2, LINE_8);
+    line(image, Point(outputCameraCorners.col(7)), Point(outputCameraCorners.col(4)), Scalar(0, 0, 255), 2, LINE_8);
+
+    line(image, Point(outputCameraCorners.col(0)), Point(outputCameraCorners.col(4)), Scalar(0, 0, 255), 2, LINE_8);
+    line(image, Point(outputCameraCorners.col(1)), Point(outputCameraCorners.col(5)), Scalar(0, 0, 255), 2, LINE_8);
+    line(image, Point(outputCameraCorners.col(2)), Point(outputCameraCorners.col(6)), Scalar(0, 0, 255), 2, LINE_8);
+    line(image, Point(outputCameraCorners.col(3)), Point(outputCameraCorners.col(7)), Scalar(0, 0, 255), 2, LINE_8);
+    
 }
 
 int main(int argc, char** argv)
@@ -167,16 +196,13 @@ int main(int argc, char** argv)
     bool lensDistortion = 1;                                            // Define whether we want to have lens distortion on or off
     projectPoints(calibrationMatrix, transformationMatrix, inputWorldPoints, lensDistortion, outputCameraPoints);  // Call function to project points from world frame to camera frame
 
-    circle(image, Point(outputCameraPoints.at<double>(0,0), outputCameraPoints.at<double>(1,0)), 3, Scalar( 0, 0, 255 ), FILLED, LINE_8 );  // Draw point at inputWorldCoordinates
+    circle(image, Point(outputCameraPoints.col(0)), 3, Scalar( 0, 0, 255 ), FILLED, LINE_8 );  // Draw point at inputWorldCoordinates
 
-    Mat cubeOrigin = Mat::zeros(3, 1, CV_64F);
-    float length = 0.08f;
+    Mat cubeOrigin = 0.04*Mat::eye(3, 1, CV_64F);
+    double length = 0.08;
     drawCube(image, cubeOrigin, length, calibrationMatrix, transformationMatrix, lensDistortion);
 
-    namedWindow("Display Image", WINDOW_KEEPRATIO);                     // Create window where the ratio of input image is kept
-    imshow("Display Image", image);                                     // show the input image
-
-    resizeWindow("Display Image", image.cols, image.rows);              // Resize the window to the image dimensions
+    imshow("Display Image", image);                                     // Show the input image
 
     moveWindow("Display Image", 500, 500);                              // Move the window in the screen
 
