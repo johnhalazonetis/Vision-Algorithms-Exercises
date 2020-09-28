@@ -156,6 +156,14 @@ void drawCube(Mat& image, Mat& cubeOrigin, double& length, Mat& calibrationMatri
     
 }
 
+void getPose(ifstream& poseFile, Mat currentPose)
+{
+    for (int r = 0; r < 6; r++)                                         // For loop to go through the elements of our translation matrix
+    {
+        poseFile >> currentPose.at<double>(r, 0);                       // Get the latest value from our text file 'poseFile'
+    }
+}
+
 int main(int argc, char** argv)
 {
     // Initlialization of main:
@@ -163,7 +171,7 @@ int main(int argc, char** argv)
     Mat calibrationMatrix(3, 3, CV_64F);                                // Define calibration matrix for function 'readCalibrationMatrixFile'
     string calibrationMatrixFile = "K.txt";                             // Define the name of the calibration matrix file
     readCalibrationMatrix(calibrationMatrixFile, calibrationMatrix);    // Call function to read the calibration matrix file and make the calibration matrix
-    cout << "Calibration Matrix (K) =" << endl << calibrationMatrix << endl;
+    
 
     Mat transformationMatrix(3, 4, CV_64F);                             // Define the transformation matrix for function 'makeTranslationMatrix'
     string posesFile = "poses.txt";                                     // Define the name of the poses text file
@@ -181,7 +189,6 @@ int main(int argc, char** argv)
     double cubeLength = 0.08;                                           // Define length of cube side
 
     VideoCapture cap(datapath + "images/img_%04d.jpg");                 // Start video capture from images found in folder
-    int imageNumber = 1;                                                // Start counting images that we get as inputs
     while( cap.isOpened() )                                             // Loop while we are receiving images from folder
     {
         Mat image;                                                          // Define image as matrix
@@ -193,10 +200,7 @@ int main(int argc, char** argv)
             return -1;                                                      // End program
         }
 
-        for (int r = 0; r < 6; r++)                                         // For loop to go through the elements of our translation matrix
-        {
-            poseFile >> currentPose.at<double>(r, 0);                       // Get the latest value from our text file 'poseFile'
-        }
+        getPose(poseFile, currentPose);                                     // Call function to get the current pose
         makeTransforationMatrix(currentPose, transformationMatrix);         // Call function to read the poses and create a transformation matrix
 
         projectPoints(calibrationMatrix, transformationMatrix, inputWorldPoints, lensDistortion, outputCameraPoints);   // Call function to project points from world frame to camera frame
@@ -208,9 +212,9 @@ int main(int argc, char** argv)
         imshow("Display Image", image);                                     // Show the input image
 
         waitKey(15);                                                        // Wait for 15 ms
-        imageNumber++;                                                      // Increase imageNumber by 1
     }
     poseFile.close();
 
+    destroyAllWindows();
     return 0;
 }
