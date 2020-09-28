@@ -33,20 +33,11 @@ void readCalibrationMatrix(string& filename, Mat calibrationMatrix)         // F
     file.close();
 }
 
-void makeTransforationMatrix(string& filename, Mat transformationMatrix)    // Function to get the poses from a text file and make a transformation matrix
+void makeTransforationMatrix(Mat& currentPose, Mat transformationMatrix)    // Function to get the poses from a text file and make a transformation matrix
 {
-    ifstream file;                                                      // Make an inward stream of data called 'file'
-    file.open (datapath + filename);                                    // Open the file in question (we sum up the datapath and the filename)
-    if(!file.is_open()) return;                                         // Insurance in case the file is not opened or does not exist
-    double value;                                                       // Make a variable 'value', where we put the values that we get from file
-
     // Get rotation values and make rotation matrix (Rodrigues formula)
-    Mat omega(3, 1, CV_64F);                                            // Make a vector called 'omega', where we put out values of omega
-    for (int r = 0; r < 3; r++)                                         // Make a for loop to go through the rows of our vector 'omega'
-    {
-        file >> value;                                                  // Get the value from our file
-        omega.at<double>(r, 0) = value;                                 // Put value from file in the 'omega' vector
-    }
+    Mat omega = currentPose.rowRange(0,3);                                            // Make a vector called 'omega', where we put out values of omega
+
     double normOmega = sqrt(pow(omega.at<double>(0, 0) , 2) + pow(omega.at<double>(1, 0) , 2) + pow(omega.at<double>(2, 0) , 2));   // Calulate the norm of the vector 'omega'
 
     Mat rotationMatrix(3, 3, CV_64F);                                   // Define the roation matrix in our transformation
@@ -66,12 +57,7 @@ void makeTransforationMatrix(string& filename, Mat transformationMatrix)    // F
     rotationMatrix = Mat::eye(3, 3, CV_64F) + (sin(normOmega)) * kCrossProduct + (1 - cos(normOmega)) * (kCrossProduct * kCrossProduct);    // Apply Rodrigues formula to calculate the rotation matrix
 
     // Making the translation matrix out of the next three values from the poses.txt file
-    Mat translationMatrix(3, 1, CV_64F);                                // Define the translation vector
-    for (int r = 0; r < 3; r++)                                         // For loop to go through the elements of our translation matrix
-    {
-        file >> value;                                                  // Get the latest value from our text file
-        translationMatrix.at<double>(r, 0) = value;                     // Put value in translation matrix
-    }
+    Mat translationMatrix = currentPose.rowRange(3,6);                                // Define the translation vector
 
     hconcat(rotationMatrix, translationMatrix, transformationMatrix);   // Concatenate the rotation matrix and the translation vector to the transformation matrix
 }
@@ -177,9 +163,13 @@ int main(int argc, char** argv)
     Mat calibrationMatrix(3, 3, CV_64F);                                // Define calibration matrix for function 'readCalibrationMatrixFile'
     string calibrationMatrixFile = "K.txt";                             // Define the name of the calibration matrix file
     readCalibrationMatrix(calibrationMatrixFile, calibrationMatrix);    // Call function to read the calibration matrix file and make the calibration matrix
+    cout << "Calibration Matrix (K) =" << endl << calibrationMatrix << endl;
 
     Mat transformationMatrix(3, 4, CV_64F);                             // Define the transformation matrix for function 'makeTranslationMatrix'
     string posesFile = "poses.txt";                                     // Define the name of the poses text file
+    ifstream poseFile;                                                  // Make an inward stream of data called 'poseFile'
+    poseFile.open (datapath + posesFile);                               // Open the file in question (we sum up the datapath and the filename)
+    Mat currentPose(6, 1, CV_64F);                                      // Create current pose matrix
     
 
     Mat inputWorldPoints = Mat::zeros(3,1, CV_64F);                     // Define input points vector (in world coordinates)
@@ -203,7 +193,11 @@ int main(int argc, char** argv)
             return -1;                                                      // End program
         }
 
-        makeTransforationMatrix(posesFile, transformationMatrix);           // Call function to read the poses and create a transformation matrix
+        for (int r = 0; r < 6; r++)                                         // For loop to go through the elements of our translation matrix
+        {
+            poseFile >> currentPose.at<double>(r, 0);                       // Get the latest value from our text file 'poseFile'
+        }
+        makeTransforationMatrix(currentPose, transformationMatrix);         // Call function to read the poses and create a transformation matrix
 
         projectPoints(calibrationMatrix, transformationMatrix, inputWorldPoints, lensDistortion, outputCameraPoints);   // Call function to project points from world frame to camera frame
 
@@ -216,6 +210,7 @@ int main(int argc, char** argv)
         waitKey(15);                                                        // Wait for 15 ms
         imageNumber++;                                                      // Increase imageNumber by 1
     }
+    poseFile.close();
 
     return 0;
 }
