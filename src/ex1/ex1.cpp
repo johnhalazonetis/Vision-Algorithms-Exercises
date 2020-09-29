@@ -15,7 +15,7 @@ const Size chessboardDimensions = Size(6, 9);       // Number of square on chess
 
 const string datapath = "/home/john/Nextcloud/Me/ETH/Master 4 (Fall 2020)/Vision Algorithms/Exercises/Exercise 1 - Augmented Reality Wireframe Cube/data/";     // Define path to data (for exercise 1)
 
-void readCalibrationMatrix(string& filename, Mat calibrationMatrix)         // Function to read calibration matrix from txt file
+void getCalibrationMatrix(string& filename, Mat calibrationMatrix)         // Function to read calibration matrix from txt file
 {
     ifstream file;                                                      // Make an inward stream of data called 'file'
     file.open (datapath + filename);                                    // Open the file in question (we sum up the datapath and the filename)
@@ -156,6 +156,22 @@ void drawCube(Mat& image, Mat& cubeOrigin, double& length, Mat& calibrationMatri
     
 }
 
+void getLensDistortionValues(string& filename, Mat distortionArray)
+{
+    ifstream distortionFile;                                            // Open an inward stream of data called distortionFile
+    distortionFile.open (datapath + filename);                          // Open the file with the distortion data
+    double tempValue;
+    
+    while (!distortionFile.eof())
+    {
+        distortionFile >> tempValue;
+        if (distortionFile.eof()) break;
+        distortionArray.push_back(tempValue);
+    }
+
+    distortionFile.close();
+}
+
 void getPose(ifstream& poseFile, Mat currentPose)
 {
     for (int r = 0; r < 6; r++)                                         // For loop to go through the elements of our translation matrix
@@ -170,7 +186,7 @@ int main(int argc, char** argv)
 
     Mat calibrationMatrix(3, 3, CV_64F);                                // Define calibration matrix for function 'readCalibrationMatrixFile'
     string calibrationMatrixFile = "K.txt";                             // Define the name of the calibration matrix file
-    readCalibrationMatrix(calibrationMatrixFile, calibrationMatrix);    // Call function to read the calibration matrix file and make the calibration matrix
+    getCalibrationMatrix(calibrationMatrixFile, calibrationMatrix);     // Call function to read the calibration matrix file and make the calibration matrix
     
 
     Mat transformationMatrix(3, 4, CV_64F);                             // Define the transformation matrix for function 'makeTranslationMatrix'
@@ -187,6 +203,10 @@ int main(int argc, char** argv)
 
     Mat cubeOrigin = 0.04*Mat::eye(3, 1, CV_64F);                       // Define where we want to place the cube on the chessboard
     double cubeLength = 0.08;                                           // Define length of cube side
+
+    Mat distortionArray;
+    string distortionValuesFile = "D.txt";
+    getLensDistortionValues(distortionValuesFile, distortionArray);
 
     VideoCapture cap(datapath + "images/img_%04d.jpg");                 // Start video capture from images found in folder
     while( cap.isOpened() )                                             // Loop while we are receiving images from folder
