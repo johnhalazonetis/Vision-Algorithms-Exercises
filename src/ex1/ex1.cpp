@@ -68,7 +68,7 @@ Mat makeTransforationMatrix(Mat& currentPose)    // Function to get the poses fr
     return transformationMatrix;
 }
 
-Mat projectPoints(Mat& calibrationMatrix, Mat& transformationMatrix, Mat& inputWorldPoints, Mat& distortionArray)           // Function to project world coordinates onto image plane (with lens distortion correction if requested)
+Mat projectPoints(Mat& calibrationMatrix, Mat& transformationMatrix, Mat& inputWorldPoints, Mat& distortionArray)           // Function to project world coordinates onto image plane (with lens distortion)
 {
     Mat outputCameraPoints(2, 1, CV_64F);
     Mat worldPointsHomo = Mat::zeros(4, 1, CV_64F);                                                                         // Define homogeneous vector for world points (empty)
@@ -171,7 +171,6 @@ Mat getLensDistortionValues(string& filename, bool& lensDistortion)     // Funct
             if (distortionFile.eof()) break;                            // If we have reached the end of the file, break the loop (otherwise we get two times the same variable at the end)
             distortionArray.push_back(tempValue);                       // Append the new value to the array
         }
-        cout << "distortionArray = " << distortionArray << endl;
         distortionFile.close();                                         // Close the file
     }
     else                                                                // If there is no camera distortion
@@ -236,7 +235,7 @@ int main(int argc, char** argv)
 
         imshow("Display Image", image);                                     // Show the input image
 
-        waitKey(15);                                                        // Wait for 15 ms
+        waitKey(20);                                                        // Wait for 15 ms
     }
     poseFile.close();
 
