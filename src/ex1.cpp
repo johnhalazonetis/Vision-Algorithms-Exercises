@@ -2,6 +2,9 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
+#include <Eigen/Core>	
+#include <Eigen/SVD>
+#include <Eigen/QR>
 
 #include <sstream>
 #include <iostream>
@@ -9,11 +12,12 @@
 
 using namespace std;
 using namespace cv;
+using namespace Eigen;
 
 // Include the functions that were made during course work
 #include "base-functions.h"
 
-void drawCube(Mat& image, Mat& cubeOrigin, double& length, Mat& calibrationMatrix, Mat& transformationMatrix, Mat& distortionArray)                 // Function to draw a cube on top of the current frame
+void drawCube(Mat image, Mat cubeOrigin, double length, Mat calibrationMatrix, Mat transformationMatrix, Mat distortionArray)                 // Function to draw a cube on top of the current frame
 {
     // Start by computing the position of the other 7 points in the world frame (keeping all of the same edge lengths)
     Mat xTranslation = Mat::eye(3, 3, CV_64F).col(0);                                                                                       // Define a translation on the x axis

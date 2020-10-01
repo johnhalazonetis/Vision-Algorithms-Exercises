@@ -29,9 +29,7 @@ int main(int argc, char** argv)
 
     Vector4d q; q << 1, 1, 1, 1;
     
-    MatrixXd Q(4, 4), Q_bar(4, 4);
-    quat(q, Q, Q_bar);
+    Matrix2d R = quat2RotMatrix(q);
 
-    cout << calibrationMatrix << endl;
-
+    cout << "R_after = " << R << endl;
 }
