@@ -4,7 +4,7 @@ project( 3DVis )
 
 find_package( OpenCV REQUIRED )
 
-include_directories( ${OpenCV_INCLUDE_DIRS} )
+include_directories( ${OpenCV_INCLUDE_DIRS} include )
 
 add_executable( ex1 src/ex1/ex1.cpp )
 

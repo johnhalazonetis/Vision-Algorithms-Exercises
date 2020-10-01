@@ -10,101 +10,8 @@
 using namespace std;
 using namespace cv;
 
-const float chessboardSquareDimension = 0.04f;      // Dimension of side of one aruco square [m]
-const Size chessboardDimensions = Size(6, 9);       // Number of square on chessboard calibration page
-
-const string datapath = "/home/john/Nextcloud/Me/ETH/Master 4 (Fall 2020)/Vision Algorithms/Exercises/Exercise 1 - Augmented Reality Wireframe Cube/data/";     // Define path to data (for exercise 1)
-
-Mat getCalibrationMatrix(string& filename)                  // Function to read calibration matrix from txt file
-{
-    Mat calibrationMatrix(3, 3, CV_64F);
-    ifstream file;                                          // Make an inward stream of data called 'file'
-    file.open (datapath + filename);                        // Open the file in question (we sum up the datapath and the filename)
-    double value;                                           // Make variable 'value', where we put the values that we get from file                                  
-    
-    for (int r = 0; r < 3; r++)                             // Make for loop to go through the rows of our calibration matrix
-    {
-        for (int c = 0; c < 3; c++)                         // Make for loop to go through the columns of our calibration matrix
-        {
-            file >> value;                                  // Get the value from our file
-            calibrationMatrix.at<double>(r, c) = value;     // Place each new value from the file into the calibration matrix
-        }
-    }
-    file.close();                                           // Close the file (we're not savages)
-
-    return calibrationMatrix;
-}
-
-Mat makeTransforationMatrix(Mat& currentPose)    // Function to get the poses from a text file and make a transformation matrix
-{
-    Mat transformationMatrix(3, 4, CV_64F);
-    
-    // Get rotation values and make rotation matrix (Rodrigues formula)
-    Mat omega = currentPose.rowRange(0,3);                                                                                                  // Make a vector called 'omega', where we put out values of omega
-
-    double normOmega = sqrt(pow(omega.at<double>(0, 0) , 2) + pow(omega.at<double>(1, 0) , 2) + pow(omega.at<double>(2, 0) , 2));           // Calulate the norm of the vector 'omega'
-
-    Mat rotationMatrix(3, 3, CV_64F);                                                                                                       // Define the roation matrix in our transformation
-    Mat kCrossProduct(3, 3, CV_64F);                                                                                                        // Define the k cross product matrix (we use the Rodrigues formula to find the rotation matrix)
-    
-    // Manually input values of k cross product matrix
-    kCrossProduct.at<double>(0, 0) = 0;
-    kCrossProduct.at<double>(0, 1) = -omega.at<double>(2, 0)/normOmega;
-    kCrossProduct.at<double>(0, 2) = omega.at<double>(1, 0)/normOmega;
-    kCrossProduct.at<double>(1, 0) = omega.at<double>(2, 0)/normOmega;
-    kCrossProduct.at<double>(1, 1) = 0;
-    kCrossProduct.at<double>(1, 2) = -omega.at<double>(0, 0)/normOmega;
-    kCrossProduct.at<double>(2, 0) = -omega.at<double>(1, 0)/normOmega;
-    kCrossProduct.at<double>(2, 1) = omega.at<double>(0, 0)/normOmega;
-    kCrossProduct.at<double>(2, 2) = 0;
-
-    rotationMatrix = Mat::eye(3, 3, CV_64F) + (sin(normOmega)) * kCrossProduct + (1 - cos(normOmega)) * (kCrossProduct * kCrossProduct);    // Apply Rodrigues formula to calculate the rotation matrix
-
-    // Making the translation matrix out of the next three values from the poses.txt file
-    Mat translationMatrix = currentPose.rowRange(3,6);                                                                                      // Define the translation vector
-
-    hconcat(rotationMatrix, translationMatrix, transformationMatrix);                                                                       // Concatenate the rotation matrix and the translation vector to the transformation matrix
-
-    return transformationMatrix;
-}
-
-Mat projectPoints(Mat& calibrationMatrix, Mat& transformationMatrix, Mat& inputWorldPoints, Mat& distortionArray)           // Function to project world coordinates onto image plane (with lens distortion)
-{
-    Mat outputCameraPoints(2, 1, CV_64F);
-    Mat worldPointsHomo = Mat::zeros(4, 1, CV_64F);                                                                         // Define homogeneous vector for world points (empty)
-    vconcat(inputWorldPoints, Mat::eye(1, 1, CV_64F), worldPointsHomo);                                                     // Create homogeneous coordinates vector for world points
-
-    Mat cameraPointsHomo = Mat::zeros(4, 1, CV_64F);                                                                        // Define the camera points vector in homogeneous coordinates
-    cameraPointsHomo = transformationMatrix * worldPointsHomo;                                                              // Calculate the camera points in homogeneous coordinates
-
-    Mat normalizedCoordinates(2, 1 ,CV_64F);                                                                                // Define the normalized coordinates vector
-    normalizedCoordinates.at<double>(0, 0) = cameraPointsHomo.at<double>(0, 0)/cameraPointsHomo.at<double>(2, 0);           // Calculate first element of the normalized coordate
-    normalizedCoordinates.at<double>(1, 0) = cameraPointsHomo.at<double>(1, 0)/cameraPointsHomo.at<double>(2, 0);           // Calculate second element of the normalized coordate
-
-    double r = sqrt(pow(normalizedCoordinates.at<double>(0, 0), 2) + pow(normalizedCoordinates.at<double>(1, 0), 2));       // Compute the radial component of normalized coordinates
-    double radialDistortionConstant = 1;                                                                                    // Define radial distortion constant
-
-    for (int distRow = 0; distRow < distortionArray.rows; distRow++)                                                        // For loop to go through all radial distortion constants
-    {
-        radialDistortionConstant = radialDistortionConstant + distortionArray.at<double>(distRow, 0)*pow(r, 2*(distRow+1)); // Computing radial distortion constant (to then multiply by normalized coordinates)
-    }
-
-    normalizedCoordinates = radialDistortionConstant * normalizedCoordinates;                                               // Compute the distorted normalized coordinates
-    
-    Mat outputCameraPointsHomo(3, 1, CV_64F);                                                                               // Define output camera points vector in homogeneous coordinates
-    Mat normalizedCoordinatesHomo(3, 1, CV_64F);                                                                            // Define normalized camera coordinates vector in homogeneous coordinates
-    vconcat(normalizedCoordinates, Mat::eye(1, 1, CV_64F), normalizedCoordinatesHomo);                                      // Make normalized camera coordinates vector in homogeneous coordinates
-
-    outputCameraPointsHomo = calibrationMatrix * normalizedCoordinatesHomo;                                                 // Calculate output camera points in homogenous coordinates
-    
-    int cameraCoordinate0 = outputCameraPointsHomo.at<double>(0, 0) / outputCameraPointsHomo.at<double>(2, 0);              // Normalize output camera coordinates and convert to integer (for pixel coordinates)
-    int cameraCoordinate1 = outputCameraPointsHomo.at<double>(1, 0) / outputCameraPointsHomo.at<double>(2, 0);              // Normalize output camera coordinates and convert to integer (for pixel coordinates)
-
-    outputCameraPoints.at<double>(0, 0) = cameraCoordinate0;                                                                // Input integer values to output camera coordinates vector
-    outputCameraPoints.at<double>(1, 0) = cameraCoordinate1;                                                                // Input integer values to output camera coordinates vector
-
-    return outputCameraPoints;
-}
+// Include the functions that were made during course work
+#include "base-functions.h"
 
 void drawCube(Mat& image, Mat& cubeOrigin, double& length, Mat& calibrationMatrix, Mat& transformationMatrix, Mat& distortionArray)                 // Function to draw a cube on top of the current frame
 {
@@ -157,44 +64,14 @@ void drawCube(Mat& image, Mat& cubeOrigin, double& length, Mat& calibrationMatri
     
 }
 
-Mat getLensDistortionValues(string& filename, bool& lensDistortion)     // Function to get the parameters of lens distortion without having to open and close the file many times
-{
-    Mat distortionArray;
-    if (lensDistortion){
-        ifstream distortionFile;                                        // Open an inward stream of data called distortionFile
-        distortionFile.open (datapath + filename);                      // Open the file with the distortion data
-        double tempValue;                                               // Declare temporary variable
-
-        while (!distortionFile.eof())                                   // While we have not reached the end of the file
-        {
-            distortionFile >> tempValue;                                // Input the value from the text file into the tempValue
-            if (distortionFile.eof()) break;                            // If we have reached the end of the file, break the loop (otherwise we get two times the same variable at the end)
-            distortionArray.push_back(tempValue);                       // Append the new value to the array
-        }
-        distortionFile.close();                                         // Close the file
-    }
-    else                                                                // If there is no camera distortion
-    {
-        distortionArray = Mat::zeros(1, 1, CV_64F);                     // Set the distortion array to zero, we can then still propagate the distortion array throughout the code, but the code will still output an undistorted result
-    }
-
-    return distortionArray;
-}
-
-void getPose(ifstream& poseFile, Mat currentPose)                       // Function to get the current pose of the camera from the input file
-{
-    for (int r = 0; r < 6; r++)                                         // For loop to go through the elements of our translation matrix
-    {
-        poseFile >> currentPose.at<double>(r, 0);                       // Get the latest value from our text file 'poseFile'
-    }
-}
-
 int main(int argc, char** argv)
 {
     // Initlialization of main:
 
+    string datapath = "/home/john/Nextcloud/Me/ETH/Master 4 (Fall 2020)/Vision Algorithms/Exercises/Exercise 1 - Augmented Reality Wireframe Cube/data/";     // Define path to data (for exercise 1)
+
     string calibrationMatrixFile = "K.txt";                             // Define the name of the calibration matrix file
-    Mat calibrationMatrix = getCalibrationMatrix(calibrationMatrixFile);// Call function to read the calibration matrix file and make the calibration matrix
+    Mat calibrationMatrix = getCalibrationMatrix(calibrationMatrixFile, datapath);// Call function to read the calibration matrix file and make the calibration matrix
 
     Mat transformationMatrix(3, 4, CV_64F);                             // Define the transformation matrix for function 'makeTranslationMatrix'
     string posesFile = "poses.txt";                                     // Define the name of the poses text file
@@ -210,7 +87,7 @@ int main(int argc, char** argv)
     double cubeLength = 0.08;                                           // Define length of cube side
 
     string distortionValuesFile = "D.txt";
-    Mat distortionArray = getLensDistortionValues(distortionValuesFile, lensDistortion);
+    Mat distortionArray = getLensDistortionValues(distortionValuesFile, lensDistortion, datapath);
 
     VideoCapture cap(datapath + "images/img_%04d.jpg");                 // Start video capture from images found in folder
     while( cap.isOpened() )                                             // Loop while we are receiving images from folder
