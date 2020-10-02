@@ -1,5 +1,4 @@
 #include <opencv2/core.hpp>
-#include <opencv2/core/eigen.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
@@ -18,7 +17,7 @@ using namespace Eigen;
 // Include the functions that were made during course work
 #include "base-functions.h"
 
-void drawCube(Mat image, Vector3d cubeOrigin, double length, Matrix3d calibrationMatrix, MatrixXd transformationMatrix, VectorXd distortionArray)   // Function to draw a cube on top of the current frame
+void drawCube(Mat& image, Vector3d& cubeOrigin, double& length, Matrix3d& calibrationMatrix, MatrixXd& transformationMatrix, VectorXd& distortionArray)   // Function to draw a cube on top of the current frame
 {
     // Start by computing the position of the other 7 points in the world frame (keeping all of the same edge lengths)
     Vector3d xTranslation; xTranslation << 1, 0, 0;                                                                                                 // Define a translation on the x axis
@@ -36,17 +35,21 @@ void drawCube(Mat image, Vector3d cubeOrigin, double length, Matrix3d calibratio
     cubeWorldCorners.col(6) = cubeOrigin + length * xTranslation + length * yTranslation - length * zTranslation;
     cubeWorldCorners.col(7) = cubeOrigin + length * yTranslation - length * zTranslation;
 
-    MatrixXd outputCameraCorners(2, 8);                                                                                                             // Define output variable
+    MatrixXi outputCameraCorners(2, 8);                                                                                                             // Define output variable
     Vector3d tempInputWorldCoords;                                                                                                                  // Define temporary input variable
+    Vector2i tempOutputCameraCorners;
 
     for (int cornerNumber = 0; cornerNumber < 8; cornerNumber++)                                                                                    // For loop to go over all of the corner
     {
         tempInputWorldCoords = cubeWorldCorners.col(cornerNumber);                                                                                  // Put the current input world coordinates in a temporary input variable
-        outputCameraCorners.col(cornerNumber) = projectPoints(calibrationMatrix, transformationMatrix, tempInputWorldCoords, distortionArray);      // Output the camera coordinates in temporary variable
+        tempOutputCameraCorners = projectPoints(calibrationMatrix, transformationMatrix, tempInputWorldCoords, distortionArray);      // Output the camera coordinates in temporary variable
+        outputCameraCorners.col(cornerNumber) = tempOutputCameraCorners;
     }
 
-    Mat cvOutputCameraCorners;
-    eigen2cv(outputCameraCorners, cvOutputCameraCorners);
+    //cout << outputCameraCorners << endl;
+
+    Mat cvOutputCameraCorners(2, 8, CV_64F);
+    cvOutputCameraCorners = eigenMatInt2cvMat(outputCameraCorners);
     
     // Draw lines of the cube on the image
     line(image, Point(cvOutputCameraCorners.col(0)), Point(cvOutputCameraCorners.col(1)), Scalar(0, 0, 255), 2, LINE_8);
@@ -63,7 +66,6 @@ void drawCube(Mat image, Vector3d cubeOrigin, double length, Matrix3d calibratio
     line(image, Point(cvOutputCameraCorners.col(1)), Point(cvOutputCameraCorners.col(5)), Scalar(0, 0, 255), 2, LINE_8);
     line(image, Point(cvOutputCameraCorners.col(2)), Point(cvOutputCameraCorners.col(6)), Scalar(0, 0, 255), 2, LINE_8);
     line(image, Point(cvOutputCameraCorners.col(3)), Point(cvOutputCameraCorners.col(7)), Scalar(0, 0, 255), 2, LINE_8);
-    
 }
 
 int main(int argc, char** argv)
@@ -90,6 +92,7 @@ int main(int argc, char** argv)
 
     string distortionValuesFile = "D.txt";
     VectorXd distortionArray = getLensDistortionValues(distortionValuesFile, lensDistortion, datapath);
+    cout << distortionArray << endl;
 
     VideoCapture cap(datapath + "images/img_%04d.jpg");                 // Start video capture from images found in folder
     while( cap.isOpened() )                                             // Loop while we are receiving images from folder
@@ -105,7 +108,7 @@ int main(int argc, char** argv)
 
         getPose(poseFile, currentPose);                                     // Call function to get the current pose
         transformationMatrix = makeTransforationMatrix(currentPose);        // Call function to read the poses and create a transformation matrix
-
+        //cout << transformationMatrix << endl;
         outputCameraPoints = projectPoints(calibrationMatrix, transformationMatrix, inputWorldPoints, distortionArray); // Call function to project points from world frame to camera frame
 
         drawCube(image, cubeOrigin, cubeLength, calibrationMatrix, transformationMatrix, distortionArray);              // Call function to draw cube at given cubeOrigin

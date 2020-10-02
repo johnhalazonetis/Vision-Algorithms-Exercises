@@ -89,7 +89,7 @@ Vector2i projectPoints(Matrix3d& calibrationMatrix, MatrixXd& transformationMatr
 
 VectorXd getLensDistortionValues(string& filename, bool& lensDistortion, string& datapath)     // Function to get the parameters of lens distortion without having to open and close the file many times
 {
-    VectorXd distortionArray;                                   // Initialize the distortion array of values
+    VectorXd distortionArray = VectorXd::Zero(1, 1);                                   // Initialize the distortion array of values
     
     if (lensDistortion)                                         // If there is lens distortion
     {
@@ -97,11 +97,16 @@ VectorXd getLensDistortionValues(string& filename, bool& lensDistortion, string&
         distortionFile.open (datapath + filename);              // Open the file with the distortion data
         double tempValue;                                       // Declare temporary variable
 
+        int rowNumber = 0;
+
         while (!distortionFile.eof())                           // While we have not reached the end of the file
         {
             distortionFile >> tempValue;                        // Input the value from the text file into the tempValue
-            if (distortionFile.eof()) break;                    // If we have reached the end of the file, break the loop (otherwise we get two times the same variable at the end)
-            distortionArray << distortionArray, tempValue;      // Append the new value to the array
+            cout << tempValue << endl;
+            //if (distortionFile.eof()) break;                  // If we have reached the end of the file, break the loop (otherwise we get two times the same variable at the end)
+            distortionArray[rowNumber] = tempValue;             // Append the new value to the array
+            cout << distortionArray << endl;
+            rowNumber++;
         }
         distortionFile.close();                                 // Close the file
     }
@@ -119,4 +124,94 @@ void getPose(ifstream& poseFile, VectorXd currentPose)  // Function to get the c
     {
         poseFile >> currentPose[r];                     // Get the latest value from our text file 'poseFile'
     }
+}
+
+Mat eigenMat2cvMat(MatrixXd& inputMatrix)               // Make a cv::Mat from an Eigen::MatrixXd
+{
+    Mat outputMatrix(inputMatrix.rows(), inputMatrix.cols(), CV_64F);
+    double tempValue;
+
+    for (int rowNumber = 0; rowNumber < inputMatrix.rows(); rowNumber++)
+    {
+        for (int colNumber = 0; colNumber < inputMatrix.cols(); colNumber++)
+        {
+            tempValue = inputMatrix(rowNumber, colNumber);
+            outputMatrix.at<double>(rowNumber, colNumber) = tempValue;
+        }
+    }
+
+    return outputMatrix;
+}
+
+Mat eigenMatInt2cvMat(MatrixXi& inputMatrix)            // Make a cv::Mat from an Eigen::MatrixXd
+{
+    Mat outputMatrix(inputMatrix.rows(), inputMatrix.cols(), CV_64F);
+    int tempValue;
+
+    for (int rowNumber = 0; rowNumber < inputMatrix.rows(); rowNumber++)
+    {
+        for (int colNumber = 0; colNumber < inputMatrix.cols(); colNumber++)
+        {
+            tempValue = inputMatrix(rowNumber, colNumber);
+            outputMatrix.at<double>(rowNumber, colNumber) = tempValue;
+        }
+    }
+
+    return outputMatrix;
+}
+
+Point eigenVec2cvPoint(Vector2i& inputVector)           // Make a cv::Point from an Eigen::Vector2i
+{
+    Point outputPoint;
+    int tempValue1, tempValue2;
+
+    tempValue1 = inputVector[0];
+    tempValue1 = inputVector[1];
+    outputPoint = Point(tempValue1, tempValue2);
+
+    return outputPoint;
+}
+
+MatrixXd cvMat2eigenMat(Mat& inputMatrix)               // Make an Eigen::MatrixXd from a cv::Mat
+{
+    MatrixXd outputMatrix(inputMatrix.rows, inputMatrix.cols);
+    double tempValue;
+
+    for (int rowNumber = 0; rowNumber < inputMatrix.rows; rowNumber++)
+    {
+        for (int colNumber = 0; colNumber < inputMatrix.cols; colNumber++)
+        {
+            tempValue = inputMatrix.at<double>(rowNumber, colNumber);
+            outputMatrix(rowNumber, colNumber) = tempValue;
+        }
+    }
+    
+    return outputMatrix;
+}
+
+VectorXd cvMat2eigenVec(Mat& inputVector)               // Make an Eigen::VectorXd from a cv::Mat
+{
+    VectorXd outputVector(inputVector.rows, 1);
+    double tempValue;
+
+    for (int rowNumber = 0; rowNumber < inputVector.rows; rowNumber++)
+    {
+        tempValue = inputVector.at<double>(rowNumber, 0);
+        outputVector[rowNumber] = tempValue;
+    }
+
+    return outputVector;
+}
+
+Vector2i cvPoint2eigenVec(Point& inputPoint)            // Make an Eigen::Vector2i from a cv::Point
+{
+    Vector2i outputVector;
+    int tempValue1, tempValue2;
+
+    tempValue1 = inputPoint.x;
+    tempValue2 = inputPoint.y;
+
+    outputVector << tempValue1, tempValue2;
+
+    return outputVector;
 }
