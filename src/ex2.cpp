@@ -25,7 +25,7 @@ int main(int argc, char** argv)
     string datapath = "/home/john/Nextcloud/Me/ETH/Master 4 (Fall 2020)/Vision Algorithms/Exercises/Exercise 2 - PnP/data/";     // Define path to data (for exercise 2)
 
     string calibrationMatrixFile = "K.txt";                                             // Define the name of the calibration matrix file
-    Mat calibrationMatrix = getCalibrationMatrix(calibrationMatrixFile, datapath);      // Call function to read the calibration matrix file and make the calibration matrix
+    Matrix3d calibrationMatrix = getCalibrationMatrix(calibrationMatrixFile, datapath);      // Call function to read the calibration matrix file and make the calibration matrix
 
     Vector4d q; q << 1, 1, 1, 1;
     
