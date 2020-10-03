@@ -211,3 +211,55 @@ Vector2i cvPoint2eigenVec(Point& inputPoint)            // Make an Eigen::Vector
 
     return outputVector;
 }
+
+void drawCube(Mat& image, Vector3d& cubeOrigin, double& length, Matrix3d& calibrationMatrix, MatrixXd& transformationMatrix, VectorXd& distortionArray)   // Function to draw a cube on top of the current frame
+{
+    // Start by computing the position of the other 7 points in the world frame (keeping all of the same edge lengths)
+    Vector3d xTranslation; xTranslation << 1, 0, 0;                                                                                 // Define a translation on the x axis
+    Vector3d yTranslation; yTranslation << 0, 1, 0;                                                                                 // Define a translation on the y axis
+    Vector3d zTranslation; zTranslation << 0, 0, 1;                                                                                 // Define a translation on the z axis
+    
+    MatrixXd cubeWorldCorners(3, 8);                                                                                                // Define the world coordinates of the corners of the cube
+
+    // Compute the world coordinates of the cube by using simple x, y and z translations in world frame
+    cubeWorldCorners.col(0) = cubeOrigin;
+    cubeWorldCorners.col(1) = cubeOrigin + length * xTranslation;
+    cubeWorldCorners.col(2) = cubeOrigin + length * xTranslation + length * yTranslation;
+    cubeWorldCorners.col(3) = cubeOrigin + length * yTranslation;
+    cubeWorldCorners.col(4) = cubeOrigin - length * zTranslation;
+    cubeWorldCorners.col(5) = cubeOrigin + length * xTranslation - length * zTranslation;
+    cubeWorldCorners.col(6) = cubeOrigin + length * xTranslation + length * yTranslation - length * zTranslation;
+    cubeWorldCorners.col(7) = cubeOrigin + length * yTranslation - length * zTranslation;
+
+    MatrixXi outputCameraCorners(2, 8);                                                                                             // Define output variable
+    Vector3d tempInputWorldCoords;                                                                                                  // Define temporary input variable
+    Vector2i tempOutputCameraCorners;
+
+    for (int cornerNumber = 0; cornerNumber < 8; cornerNumber++)                                                                    // For loop to go over all of the corner
+    {
+        tempInputWorldCoords = cubeWorldCorners.col(cornerNumber);                                                                  // Put the current input world coordinates in a temporary input variable
+        tempOutputCameraCorners = projectPoints(calibrationMatrix, transformationMatrix, tempInputWorldCoords, distortionArray);    // Output the camera coordinates in temporary variable
+        outputCameraCorners.col(cornerNumber) = tempOutputCameraCorners;
+    }
+
+    //cout << outputCameraCorners << endl;
+
+    Mat cvOutputCameraCorners(2, 8, CV_64F);
+    cvOutputCameraCorners = eigenMatInt2cvMat(outputCameraCorners);
+    
+    // Draw lines of the cube on the image
+    line(image, Point(cvOutputCameraCorners.col(0)), Point(cvOutputCameraCorners.col(1)), Scalar(0, 0, 255), 2, LINE_8);
+    line(image, Point(cvOutputCameraCorners.col(1)), Point(cvOutputCameraCorners.col(2)), Scalar(0, 0, 255), 2, LINE_8);
+    line(image, Point(cvOutputCameraCorners.col(2)), Point(cvOutputCameraCorners.col(3)), Scalar(0, 0, 255), 2, LINE_8);
+    line(image, Point(cvOutputCameraCorners.col(3)), Point(cvOutputCameraCorners.col(0)), Scalar(0, 0, 255), 2, LINE_8);
+
+    line(image, Point(cvOutputCameraCorners.col(4)), Point(cvOutputCameraCorners.col(5)), Scalar(0, 0, 255), 2, LINE_8);
+    line(image, Point(cvOutputCameraCorners.col(5)), Point(cvOutputCameraCorners.col(6)), Scalar(0, 0, 255), 2, LINE_8);
+    line(image, Point(cvOutputCameraCorners.col(6)), Point(cvOutputCameraCorners.col(7)), Scalar(0, 0, 255), 2, LINE_8);
+    line(image, Point(cvOutputCameraCorners.col(7)), Point(cvOutputCameraCorners.col(4)), Scalar(0, 0, 255), 2, LINE_8);
+
+    line(image, Point(cvOutputCameraCorners.col(0)), Point(cvOutputCameraCorners.col(4)), Scalar(0, 0, 255), 2, LINE_8);
+    line(image, Point(cvOutputCameraCorners.col(1)), Point(cvOutputCameraCorners.col(5)), Scalar(0, 0, 255), 2, LINE_8);
+    line(image, Point(cvOutputCameraCorners.col(2)), Point(cvOutputCameraCorners.col(6)), Scalar(0, 0, 255), 2, LINE_8);
+    line(image, Point(cvOutputCameraCorners.col(3)), Point(cvOutputCameraCorners.col(7)), Scalar(0, 0, 255), 2, LINE_8);
+}
