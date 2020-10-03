@@ -31,5 +31,5 @@ int main(int argc, char** argv)
     
     Matrix2d R = quat2RotMatrix(q);
 
-    cout << "R_after = " << R << endl;
+    cout << "R = " << R << endl;
 }
