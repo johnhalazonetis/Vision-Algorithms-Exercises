@@ -89,7 +89,7 @@ Vector2i projectPoints(Matrix3d& calibrationMatrix, MatrixXd& transformationMatr
 
 VectorXd getLensDistortionValues(string& filename, bool& lensDistortion, string& datapath)     // Function to get the parameters of lens distortion without having to open and close the file many times
 {
-    VectorXd distortionArray = VectorXd::Zero(1, 1);                                   // Initialize the distortion array of values
+    VectorXd distortionArray;                                   // Initialize the distortion array of values
     
     if (lensDistortion)                                         // If there is lens distortion
     {
@@ -97,16 +97,13 @@ VectorXd getLensDistortionValues(string& filename, bool& lensDistortion, string&
         distortionFile.open (datapath + filename);              // Open the file with the distortion data
         double tempValue;                                       // Declare temporary variable
 
-        int rowNumber = 0;
-
         while (!distortionFile.eof())                           // While we have not reached the end of the file
         {
             distortionFile >> tempValue;                        // Input the value from the text file into the tempValue
             cout << tempValue << endl;
             //if (distortionFile.eof()) break;                  // If we have reached the end of the file, break the loop (otherwise we get two times the same variable at the end)
-            distortionArray[rowNumber] = tempValue;             // Append the new value to the array
+            distortionArray << distortionArray, tempValue;             // Append the new value to the array
             cout << distortionArray << endl;
-            rowNumber++;
         }
         distortionFile.close();                                 // Close the file
     }
