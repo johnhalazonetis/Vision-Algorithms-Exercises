@@ -22,7 +22,7 @@ MatrixXd makeTransforationMatrix(VectorXd& currentPose)    // Function to get th
     MatrixXd transformationMatrix(3, 4);
     
     // Get rotation values and make rotation matrix (Rodrigues formula)
-    Vector3d omega = currentPose.segment(0, 3);     // Make a vector called 'omega', where we put out values of omega
+    Vector3d omega = currentPose.head(3);           // Make a vector called 'omega', with first 3 values of omega
 
     double normOmega = omega.norm();                // Calulate the norm of the vector 'omega'
 
@@ -43,20 +43,20 @@ MatrixXd makeTransforationMatrix(VectorXd& currentPose)    // Function to get th
     rotationMatrix = MatrixXd::Identity(3, 3) + (sin(normOmega)) * kCrossProduct + (1 - cos(normOmega)) * (kCrossProduct * kCrossProduct);  // Apply Rodrigues formula to calculate the rotation matrix
 
     // Making the translation matrix out of the next three values from the poses.txt file
-    Vector3d translationMatrix = currentPose.segment(3, 3);             // Define the translation vector
+    Vector3d translationMatrix = currentPose.tail<3>();             // Define the translation vector
 
     transformationMatrix << rotationMatrix, translationMatrix;          // Concatenate the rotation matrix and the translation vector to the transformation matrix
     
     return transformationMatrix;
 }
 
-Vector2i projectPoints(Matrix3d& calibrationMatrix, MatrixXd& transformationMatrix, Vector3d& inputWorldPoints, VectorXd& distortionArray)  // Function to project world coordinates onto image plane (with lens distortion)
+Vector2i projectPoints(Matrix3d calibrationMatrix, MatrixXd transformationMatrix, Vector3d inputWorldPoints, VectorXd distortionArray)  // Function to project world coordinates onto image plane (with lens distortion)
 {
     Vector2i outputCameraPoints;
-    Vector4d worldPointsHomo;                                                                                       // Define homogeneous vector for world points (empty)
+    VectorXd worldPointsHomo(4, 1);                                                                                       // Define homogeneous vector for world points (empty)
     worldPointsHomo << inputWorldPoints, 1;                                                                         // Create homogeneous coordinates vector for world points
 
-    Vector4d cameraPointsHomo;                                                                                      // Define the camera points vector in homogeneous coordinates
+    Vector3d cameraPointsHomo;                                                                                      // Define the camera points vector in homogeneous coordinates
     cameraPointsHomo = transformationMatrix * worldPointsHomo;                                                      // Calculate the camera points in homogeneous coordinates
 
     Vector2d normalizedCoordinates;                                                                                 // Define the normalized coordinates vector
@@ -89,21 +89,16 @@ Vector2i projectPoints(Matrix3d& calibrationMatrix, MatrixXd& transformationMatr
 
 VectorXd getLensDistortionValues(string& filename, bool& lensDistortion, string& datapath)     // Function to get the parameters of lens distortion without having to open and close the file many times
 {
-    VectorXd distortionArray;                                   // Initialize the distortion array of values
+    VectorXd distortionArray(2, 1);                             // Initialize the distortion array of values
     
     if (lensDistortion)                                         // If there is lens distortion
     {
         ifstream distortionFile;                                // Open an inward stream of data called distortionFile
         distortionFile.open (datapath + filename);              // Open the file with the distortion data
-        double tempValue;                                       // Declare temporary variable
 
-        while (!distortionFile.eof())                           // While we have not reached the end of the file
+        for (int c = 0; c < 2; c++)                 // Loop over the columns
         {
-            distortionFile >> tempValue;                        // Input the value from the text file into the tempValue
-            cout << tempValue << endl;
-            //if (distortionFile.eof()) break;                  // If we have reached the end of the file, break the loop (otherwise we get two times the same variable at the end)
-            distortionArray << distortionArray, tempValue;             // Append the new value to the array
-            cout << distortionArray << endl;
+            distortionFile >> distortionArray[c]; // Input the values into the calibration matrix
         }
         distortionFile.close();                                 // Close the file
     }
@@ -115,12 +110,16 @@ VectorXd getLensDistortionValues(string& filename, bool& lensDistortion, string&
     return distortionArray;
 }
 
-void getPose(ifstream& poseFile, VectorXd currentPose)  // Function to get the current pose of the camera from an input file
+VectorXd getPose(ifstream& poseFile)  // Function to get the current pose of the camera from an input file
 {
+    VectorXd currentPose(6, 1);
+
     for (int r = 0; r < 6; r++)                         // For loop to go through the elements of our translation matrix
     {
         poseFile >> currentPose[r];                     // Get the latest value from our text file 'poseFile'
     }
+
+    return currentPose;
 }
 
 Mat eigenMat2cvMat(MatrixXd& inputMatrix)               // Make a cv::Mat from an Eigen::MatrixXd

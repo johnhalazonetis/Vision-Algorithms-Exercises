@@ -92,7 +92,6 @@ int main(int argc, char** argv)
 
     string distortionValuesFile = "D.txt";
     VectorXd distortionArray = getLensDistortionValues(distortionValuesFile, lensDistortion, datapath);
-    cout << distortionArray << endl;
 
     VideoCapture cap(datapath + "images/img_%04d.jpg");                 // Start video capture from images found in folder
     while( cap.isOpened() )                                             // Loop while we are receiving images from folder
@@ -106,10 +105,11 @@ int main(int argc, char** argv)
             return -1;                                                      // End program
         }
 
-        getPose(poseFile, currentPose);                                     // Call function to get the current pose
+        VectorXd currentPose = getPose(poseFile);                           // Call function to get the current pose
         transformationMatrix = makeTransforationMatrix(currentPose);        // Call function to read the poses and create a transformation matrix
-        //cout << transformationMatrix << endl;
         outputCameraPoints = projectPoints(calibrationMatrix, transformationMatrix, inputWorldPoints, distortionArray); // Call function to project points from world frame to camera frame
+        
+        cout << outputCameraPoints << endl << "projectPoints works" << endl;
 
         drawCube(image, cubeOrigin, cubeLength, calibrationMatrix, transformationMatrix, distortionArray);              // Call function to draw cube at given cubeOrigin
 
