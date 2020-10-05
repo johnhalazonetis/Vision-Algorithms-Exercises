@@ -86,7 +86,38 @@ MatrixXd getCameraCoordinates(ifstream& detectedCornersFile, int& numberOfWorldC
 
 MatrixXd estimatePoseDLT(MatrixXd& currentDetectedPoints, MatrixXd& worldPointCoordinates, Matrix3d& calibrationMatrix)
 {
-    MatrixXd currentPose(3, 4);
+    MatrixXd currentPose(3, 4);                                                     // Define the current pose matrix
+    int numberOfPoints = currentDetectedPoints.cols();                              // Find the number of points from the input matrix
+
+    MatrixXd Q = MatrixXd::Zero(numberOfPoints*2, 12);                              // Create matrix Q
+
+    for (int pointN = 0; pointN < numberOfPoints; pointN++)                         // Loop through all of the points that we have (to make the Q matrix)
+    {
+        Vector3d pixelPoint; pixelPoint << currentDetectedPoints.col(pointN), 1;
+        Vector3d normalizedCoords = calibrationMatrix.inverse() * pixelPoint;
+        normalizedCoords = 1/normalizedCoords[2] * normalizedCoords;
+
+        // Read course to find out how to calculate Q quickly
+    }
+    
+
+    // Find normalized coordinates: [x,y,1]^T = K^-1 [u, v, 1]^T
+
+    // Make matrix Q (see statement)
+
+    // compute the last column of V in SVD decomposition (check S as well according to statement)
+
+    // Convert The result to a 3x4 matrix (transpose of 4x3 matrix)
+
+    // Check that M_34 is positive, other wise multiply M by -1, then we have M = [R | t]
+
+    // Find true rotation matrix R*
+        // Calculate SVD of R (from M) R = U*S*V^T, then R* = U * V^T
+    
+    // Find the scaling factor alpha
+        // alpha = norm(R*)/norm(R)
+
+    // The projection matrix can be calculated as: M* = [R* | alpha*t]
 
     return currentPose;
 }
