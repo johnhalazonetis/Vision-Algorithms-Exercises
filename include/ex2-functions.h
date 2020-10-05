@@ -48,3 +48,50 @@ Matrix2d quat2RotMatrix(Vector4d q)     // Transforms a quaternion q into a rota
 
      return R;
 }
+
+MatrixXd loadWorldCoordinatePoints(string worldCoordinatesFileName, string& datapath, int& numberOfWorldCoordinates)    // Function to put all found world coordinates in text file into matrix
+{
+    MatrixXd worldCoordinates(3, numberOfWorldCoordinates);                     // Define world coordinates matrix
+    double tempValue;
+    ifstream worldCoordinatesFile;                                              // Make an inward stream of data called 'worldCoordinatesFile'
+    worldCoordinatesFile.open (datapath + worldCoordinatesFileName);            // Open the file
+
+    for (int colNumber = 0; colNumber < numberOfWorldCoordinates; colNumber++)  // For loop to go through all of the 3D points in the file
+    {
+        for (int rowNumber = 0; rowNumber < 3; rowNumber++)                     // For loop to go through the values of each point
+        {
+            worldCoordinatesFile >> tempValue;
+            worldCoordinates(rowNumber, colNumber) = tempValue;                 // Input the value into the matrix
+        }        
+    }
+
+    worldCoordinatesFile.close();                                               // Close the file
+    return worldCoordinates;                                                    // Return the resulting matrix
+}
+
+MatrixXd getCameraCoordinates(ifstream& detectedCornersFile, int& numberOfWorldCoordinates)
+{
+    MatrixXd currentCameraCoordinates(2, numberOfWorldCoordinates);
+
+    for (int colNumber = 0; colNumber < numberOfWorldCoordinates; colNumber++)
+    {
+        for (int rowNumber = 0; rowNumber < 2; rowNumber++)
+        {
+            detectedCornersFile >> currentCameraCoordinates(rowNumber, colNumber);
+        }
+    }
+
+    return currentCameraCoordinates;
+}
+
+MatrixXd estimatePoseDLT(MatrixXd& currentDetectedPoints, MatrixXd& worldPointCoordinates, Matrix3d& calibrationMatrix)
+{
+    MatrixXd currentPose(3, 4);
+
+    return currentPose;
+}
+
+void reprojectPoints(MatrixXd& worldCoordinates, MatrixXd& currentPose, Matrix3d& calibrationMatrix)
+{
+
+}

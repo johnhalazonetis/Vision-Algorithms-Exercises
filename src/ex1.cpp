@@ -62,7 +62,7 @@ int main(int argc, char** argv)
 
         imshow("Display Image", image);                                     // Show the input image
 
-        waitKey(20);                                                        // Wait for 15 ms
+        waitKey(17);                                                        // Wait for 17 ms
     }
     poseFile.close();                                                   // Close the poses file
 

@@ -1,8 +1,8 @@
 Matrix3d getCalibrationMatrix(string& filename, string& datapath)    // Function to read calibration matrix from txt file
 {
     Matrix3d calibrationMatrix;
-    ifstream kMatrixFile;                           // Make an inward stream of data called 'file'
-    kMatrixFile.open (datapath + filename);         // Open the file in question (we sum up the datapath and the filename)
+    ifstream kMatrixFile;                           // Make an inward stream of data called 'kMatrixFile'
+    kMatrixFile.open (datapath + filename);         // Open the file
     
     for (int r = 0; r < 3; r++)                     // Loop over the rows
     {
@@ -262,4 +262,15 @@ void drawCube(Mat& image, Vector3d& cubeOrigin, double& length, Matrix3d& calibr
     line(image, Point(cvOutputCameraCorners.col(1)), Point(cvOutputCameraCorners.col(5)), Scalar(0, 0, 255), 2, LINE_8);
     line(image, Point(cvOutputCameraCorners.col(2)), Point(cvOutputCameraCorners.col(6)), Scalar(0, 0, 255), 2, LINE_8);
     line(image, Point(cvOutputCameraCorners.col(3)), Point(cvOutputCameraCorners.col(7)), Scalar(0, 0, 255), 2, LINE_8);
+}
+
+void drawPointCloud(Mat& image, MatrixXd pointCloud, int numberOfPoints)
+{
+    Mat cvPointCloud(2, numberOfPoints, CV_64F);
+    cvPointCloud = eigenMat2cvMat(pointCloud);
+
+    for (int pointN = 0; pointN < numberOfPoints; pointN++)
+    {
+        circle(image, Point(cvPointCloud.col(pointN)), 2.5, Scalar(0, 255, 255), FILLED, LINE_8);
+    }
 }
