@@ -2,10 +2,9 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
-#include <Eigen/Core>
-#include <Eigen/SVD>
-#include <Eigen/QR>
-#include <Eigen/Dense>
+#include <Eigen/Core>               // Importing general Eigen library
+#include <Eigen/SVD>                // Allows to calculate SVD (using Jacobi or faster BDC methods)
+#include <Eigen/Dense>              // Allows to calulate the inverse of Eigen::Matrix
 
 #include <sstream>
 #include <iostream>
@@ -15,14 +14,13 @@ using namespace std;
 using namespace cv;
 using namespace Eigen;
 
-// Include the functions that were made during course work
+// Include the functions that were made during exercises
 #include "base-functions.h"
 #include "ex2-functions.h"
 
 int main(int argc, char** argv)
 {
     // Initlialization of main:
-
     string datapath = "/home/john/Nextcloud/Me/ETH/Master 4 (Fall 2020)/Vision Algorithms/Exercises/Exercise 2 - PnP/data/";    // Define path to data (for exercise 2)
     int numberOfDetectedCornersPerFrame = 12;
 
@@ -56,7 +54,7 @@ int main(int argc, char** argv)
         
         imshow("Display Image", image);                                                                                             // Show the input image
 
-        waitKey(17);                                                                                                                // Wait for 17 ms
+        waitKey(17);                                                                                                                // Wait for X ms
     }
 
     detectedCornersFile.close();                                                                                                // Close detected corners file

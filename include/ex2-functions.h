@@ -88,24 +88,24 @@ MatrixXd estimatePoseDLT(MatrixXd& currentDetectedPoints, MatrixXd& worldPointCo
 {
     MatrixXd currentPose(3, 4);                                                     // Define the current pose matrix
     int numberOfPoints = currentDetectedPoints.cols();                              // Find the number of points from the input matrix
-    Matrix3d invCalibrationMatrix = calibrationMatrix.inverse();
 
     MatrixXd Q = MatrixXd::Zero(numberOfPoints*2, 12);                              // Create matrix Q
 
     for (int pointN = 0; pointN < numberOfPoints; pointN++)                         // Loop through all of the points that we have (to make the Q matrix)
     {
-        Vector4d worldCoords; worldCoords << worldPointCoordinates.col(pointN), 1;
-        Vector3d pixelCoords; pixelCoords << currentDetectedPoints.col(pointN), 1;
-        Vector3d normalizedCoords = invCalibrationMatrix * pixelCoords;
-        normalizedCoords = 1/normalizedCoords[2] * normalizedCoords;
+        Vector4d worldCoords; worldCoords << worldPointCoordinates.col(pointN), 1;  // Make homogeneous world coordinates
+        Vector3d pixelCoords; pixelCoords << currentDetectedPoints.col(pointN), 1;  // Make homogeneous pixel coordinates
+        Vector3d normalizedCoords = calibrationMatrix.inverse() * pixelCoords;      // Calculate normalized pixel coordinates using inverted K matrix
+        normalizedCoords = 1/normalizedCoords[2] * normalizedCoords;                // Ensure that the last value of the normalized coordinates is 1
 
+        // Build matrix Q using the formula found in course
         Q.block<1,4>(2*pointN, 0) = worldCoords.transpose();
         Q.block<1,4>(2*pointN + 1, 4) = worldCoords.transpose();
         Q.block<1,4>(2*pointN, 8) = -normalizedCoords[0] * worldCoords.transpose();
         Q.block<1,4>(2*pointN + 1, 8) = -normalizedCoords[1] * worldCoords.transpose();
     }
 
-    BDCSVD<MatrixXd> svd( Q, ComputeThinU | ComputeThinV);                          // Solve the SVD for Q
+    BDCSVD<MatrixXd> svd( Q, ComputeThinU | ComputeThinV );                         // Solve the SVD for Q
     MatrixXd Mcol = svd.matrixV().rightCols(1);                                     // Take the last column of V matrix (S is in descending order)
 
     Mcol.resize(4, 3);                                                              // Transform solution into 4x3 matrix
@@ -114,7 +114,7 @@ MatrixXd estimatePoseDLT(MatrixXd& currentDetectedPoints, MatrixXd& worldPointCo
     if (currentPose(2, 3) < 0) currentPose = - currentPose;                         // If last element is negative multiply M by -1
 
     MatrixXd R = currentPose.block(0, 0, 3, 3);                                     // Get the rotation matrix from M
-    BDCSVD<MatrixXd> svdR( R, ComputeThinU | ComputeThinV);                         // Compute SVD of R to get matrices U and V
+    BDCSVD<MatrixXd> svdR( R, ComputeThinU | ComputeThinV );                        // Compute SVD of R to get matrices U and V
     currentPose.block<3, 3>(0, 0) = svdR.matrixU() * svdR.matrixV().transpose();    // Compute accurate R* = U * V^T
     
     double alpha = (currentPose.block(0, 0, 3, 3).norm())/R.norm();                 // Compute scaling factor alpha = norm(R*)/norm(R)
@@ -126,5 +126,5 @@ MatrixXd estimatePoseDLT(MatrixXd& currentDetectedPoints, MatrixXd& worldPointCo
 
 void reprojectPoints(MatrixXd& worldCoordinates, MatrixXd& currentPose, Matrix3d& calibrationMatrix)
 {
-
+    
 }
