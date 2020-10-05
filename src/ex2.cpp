@@ -49,7 +49,7 @@ int main(int argc, char** argv)
 
         currentDetectedCorners = getCameraCoordinates(detectedCornersFile, numberOfDetectedCornersPerFrame);                        // Detect corners of the current frame
 
-        drawPointCloud(image, currentDetectedCorners, numberOfDetectedCornersPerFrame);
+        drawPointCloud(image, currentDetectedCorners, numberOfDetectedCornersPerFrame);                                             // Draw the detected points in the image
 
         imshow("Display Image", image);                                                                                             // Show the input image
 
