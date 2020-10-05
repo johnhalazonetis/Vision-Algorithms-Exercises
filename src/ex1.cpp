@@ -34,13 +34,12 @@ int main(int argc, char** argv)
     
     Vector3d inputWorldPoints;                                          // Define input points vector (in world coordinates)
     Vector2i outputCameraPoints;                                        // Define output points vector (in camera frame)
-    bool lensDistortion = 1;                                            // Define whether we want to have lens distortion on or off
 
     Vector3d cubeOrigin; cubeOrigin << 0.04, 0.04, 0;                   // Define where we want to place the cube on the chessboard
     double cubeLength = 0.08;                                           // Define length of cube side
 
     string distortionValuesFile = "D.txt";
-    VectorXd distortionArray = getLensDistortionValues(distortionValuesFile, lensDistortion, datapath);
+    VectorXd distortionArray = getLensDistortionValues(distortionValuesFile, 1, datapath, 2);
 
     VideoCapture cap(datapath + "images/img_%04d.jpg");                 // Start video capture from images found in folder
     while( cap.isOpened() )                                             // Loop while we are receiving images from folder

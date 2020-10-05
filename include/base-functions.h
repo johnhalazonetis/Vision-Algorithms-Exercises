@@ -87,24 +87,24 @@ Vector2i projectPoints(Matrix3d calibrationMatrix, MatrixXd transformationMatrix
     return outputCameraPoints;
 }
 
-VectorXd getLensDistortionValues(string& filename, bool& lensDistortion, string& datapath)     // Function to get the parameters of lens distortion without having to open and close the file many times
+VectorXd getLensDistortionValues(string& filename, bool lensDistortion, string& datapath, int parameterNumer)     // Function to get lens distortion parameters
 {
-    VectorXd distortionArray(2, 1);                             // Initialize the distortion array of values
+    VectorXd distortionArray(parameterNumer, 1);                // Initialize the distortion array of values
     
     if (lensDistortion)                                         // If there is lens distortion
     {
         ifstream distortionFile;                                // Open an inward stream of data called distortionFile
         distortionFile.open (datapath + filename);              // Open the file with the distortion data
 
-        for (int c = 0; c < 2; c++)                 // Loop over the columns
+        for (int c = 0; c < parameterNumer; c++)                // Loop over the columns
         {
-            distortionFile >> distortionArray[c]; // Input the values into the calibration matrix
+            distortionFile >> distortionArray[c];               // Input the values into the calibration matrix
         }
         distortionFile.close();                                 // Close the file
     }
     else                                                        // If there is no camera distortion
     {
-        distortionArray = VectorXd::Zero(1, 1);                 // Set the distortion array to zero, we can then still propagate the distortion array throughout the code, but the code will still output an undistorted result
+        distortionArray = VectorXd::Zero(1, 1);                 // Set the distortion array to zero, distortion array can still be propagate throughout the code, but code will still output an undistorted result
     }
 
     return distortionArray;
