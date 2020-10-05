@@ -51,6 +51,8 @@ int main(int argc, char** argv)
 
         drawPointCloud(image, currentDetectedCorners, numberOfDetectedCornersPerFrame);                                             // Draw the detected points in the image
 
+        MatrixXd currentPose = estimatePoseDLT(currentDetectedCorners, worldCoordinates, calibrationMatrix);
+
         imshow("Display Image", image);                                                                                             // Show the input image
 
         waitKey(17);                                                                                                                // Wait for 17 ms

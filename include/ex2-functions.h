@@ -88,17 +88,24 @@ MatrixXd estimatePoseDLT(MatrixXd& currentDetectedPoints, MatrixXd& worldPointCo
 {
     MatrixXd currentPose(3, 4);                                                     // Define the current pose matrix
     int numberOfPoints = currentDetectedPoints.cols();                              // Find the number of points from the input matrix
+    Matrix3d invCalibrationMatrix = calibrationMatrix.inverse();
 
     MatrixXd Q = MatrixXd::Zero(numberOfPoints*2, 12);                              // Create matrix Q
 
     for (int pointN = 0; pointN < numberOfPoints; pointN++)                         // Loop through all of the points that we have (to make the Q matrix)
     {
-        Vector3d pixelPoint; pixelPoint << currentDetectedPoints.col(pointN), 1;
-        Vector3d normalizedCoords = calibrationMatrix.inverse() * pixelPoint;
+        Vector4d worldCoords; worldCoords << worldPointCoordinates.col(pointN), 1;
+        Vector3d pixelCoords; pixelCoords << currentDetectedPoints.col(pointN), 1;
+        Vector3d normalizedCoords = invCalibrationMatrix * pixelCoords;
         normalizedCoords = 1/normalizedCoords[2] * normalizedCoords;
 
-        // Read course to find out how to calculate Q quickly
+        Q.block<1,4>(2*pointN, 0) = worldCoords.transpose();
+        Q.block<1,4>(2*pointN + 1, 4) = worldCoords.transpose();
+        Q.block<1,4>(2*pointN, 8) = -normalizedCoords[0] * worldCoords.transpose();
+        Q.block<1,4>(2*pointN + 1, 8) = -normalizedCoords[1] * worldCoords.transpose();
     }
+
+    cout << Q << endl << endl;
     
 
     // Find normalized coordinates: [x,y,1]^T = K^-1 [u, v, 1]^T
