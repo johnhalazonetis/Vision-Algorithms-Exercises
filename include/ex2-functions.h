@@ -105,26 +105,21 @@ MatrixXd estimatePoseDLT(MatrixXd& currentDetectedPoints, MatrixXd& worldPointCo
         Q.block<1,4>(2*pointN + 1, 8) = -normalizedCoords[1] * worldCoords.transpose();
     }
 
-    cout << Q << endl << endl;
+    BDCSVD<MatrixXd> svd( Q, ComputeThinU | ComputeThinV);                          // Solve the SVD for Q
+    MatrixXd Mcol = svd.matrixV().rightCols(1);                                     // Take the last column of V matrix (S is in descending order)
+
+    Mcol.resize(4, 3);                                                              // Transform solution into 4x3 matrix
+    currentPose = Mcol.transpose();                                                 // Take the transpose to get intermediate result
+
+    if (currentPose(2, 3) < 0) currentPose = - currentPose;                         // If last element is negative multiply M by -1
+
+    MatrixXd R = currentPose.block(0, 0, 3, 3);                                     // Get the rotation matrix from M
+    BDCSVD<MatrixXd> svdR( R, ComputeThinU | ComputeThinV);                         // Compute SVD of R to get matrices U and V
+    currentPose.block<3, 3>(0, 0) = svdR.matrixU() * svdR.matrixV().transpose();    // Compute accurate R* = U * V^T
     
+    double alpha = (currentPose.block(0, 0, 3, 3).norm())/R.norm();                 // Compute scaling factor alpha = norm(R*)/norm(R)
 
-    // Find normalized coordinates: [x,y,1]^T = K^-1 [u, v, 1]^T
-
-    // Make matrix Q (see statement)
-
-    // compute the last column of V in SVD decomposition (check S as well according to statement)
-
-    // Convert The result to a 3x4 matrix (transpose of 4x3 matrix)
-
-    // Check that M_34 is positive, other wise multiply M by -1, then we have M = [R | t]
-
-    // Find true rotation matrix R*
-        // Calculate SVD of R (from M) R = U*S*V^T, then R* = U * V^T
-    
-    // Find the scaling factor alpha
-        // alpha = norm(R*)/norm(R)
-
-    // The projection matrix can be calculated as: M* = [R* | alpha*t]
+    currentPose.block<3, 1>(0, 3) = alpha * currentPose.block(0, 3, 3, 1);          // The projection matrix can be calculated as: M* = [R* | alpha*t]
 
     return currentPose;
 }

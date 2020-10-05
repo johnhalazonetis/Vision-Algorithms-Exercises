@@ -2,9 +2,10 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
-#include <Eigen/Core>	
+#include <Eigen/Core>
 #include <Eigen/SVD>
 #include <Eigen/QR>
+#include <Eigen/Dense>
 
 #include <sstream>
 #include <iostream>
@@ -52,7 +53,7 @@ int main(int argc, char** argv)
         drawPointCloud(image, currentDetectedCorners, numberOfDetectedCornersPerFrame);                                             // Draw the detected points in the image
 
         MatrixXd currentPose = estimatePoseDLT(currentDetectedCorners, worldCoordinates, calibrationMatrix);
-
+        
         imshow("Display Image", image);                                                                                             // Show the input image
 
         waitKey(17);                                                                                                                // Wait for 17 ms
