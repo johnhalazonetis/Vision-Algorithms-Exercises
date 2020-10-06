@@ -156,7 +156,7 @@ Point eigenVec2cvPoint(Vector2i& inputVector)           // Make a cv::Point from
     int tempValue1, tempValue2;
 
     tempValue1 = inputVector[0];
-    tempValue1 = inputVector[1];
+    tempValue2 = inputVector[1];
     outputPoint = Point(tempValue1, tempValue2);
 
     return outputPoint;

@@ -124,7 +124,16 @@ MatrixXd estimatePoseDLT(MatrixXd& currentDetectedPoints, MatrixXd& worldPointCo
     return currentPose;
 }
 
-void reprojectPoints(MatrixXd& worldCoordinates, MatrixXd& currentPose, Matrix3d& calibrationMatrix)
+void reprojectPoints(MatrixXd& worldCoordinates, MatrixXd& currentPose, Matrix3d& calibrationMatrix, Mat& image)
 {
-    
+    int numberOfPoints = worldCoordinates.cols();
+
+    for (int pointN = 0; pointN < numberOfPoints; pointN++)
+    {
+        Vector3d currentWorldCoordinate = worldCoordinates.col(pointN);
+        Vector2i currentReprojectedPoint = projectPoints(calibrationMatrix, currentPose, currentWorldCoordinate, VectorXd::Zero(1));
+
+        Point cvCurrentReprojectedPoint = eigenVec2cvPoint(currentReprojectedPoint);
+        drawMarker(image, cvCurrentReprojectedPoint,  Scalar(0, 0, 255), MARKER_CROSS, 7, 1, 8);
+    }    
 }
