@@ -50,7 +50,13 @@ int main(int argc, char** argv)
 
         drawPointCloud(image, currentDetectedCorners, numberOfDetectedCornersPerFrame);                                             // Draw the detected points in the image
 
-        MatrixXd currentPose = estimatePoseDLT(currentDetectedCorners, worldCoordinates, calibrationMatrix);
+        MatrixXd currentPose = estimatePoseDLT(currentDetectedCorners, worldCoordinates, calibrationMatrix);                        // Estimate the current pose using DLT algorithm
+
+        for (int pointN = 0; pointN < numberOfDetectedCornersPerFrame; pointN++)                                                    // For loop to loop through all of the detected corners in a single frame
+        {
+            
+        }
+        
         
         imshow("Display Image", image);                                                                                             // Show the input image
 

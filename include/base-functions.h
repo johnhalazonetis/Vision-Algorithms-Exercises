@@ -52,17 +52,14 @@ MatrixXd makeTransforationMatrix(VectorXd& currentPose)    // Function to get th
 
 Vector2i projectPoints(Matrix3d calibrationMatrix, MatrixXd transformationMatrix, Vector3d inputWorldPoints, VectorXd distortionArray)  // Function to project world coordinates onto image plane (with lens distortion)
 {
-    Vector2i outputCameraPoints;
-    VectorXd worldPointsHomo(4, 1);                                                                                       // Define homogeneous vector for world points (empty)
+    VectorXd worldPointsHomo(4, 1);                                                                                 // Define homogeneous vector for world points (empty)
     worldPointsHomo << inputWorldPoints, 1;                                                                         // Create homogeneous coordinates vector for world points
 
     Vector3d cameraPointsHomo;                                                                                      // Define the camera points vector in homogeneous coordinates
     cameraPointsHomo = transformationMatrix * worldPointsHomo;                                                      // Calculate the camera points in homogeneous coordinates
 
-    Vector2d normalizedCoordinates;                                                                                 // Define the normalized coordinates vector
-    normalizedCoordinates[0] = cameraPointsHomo[0]/cameraPointsHomo[2];                                             // Calculate first element of the normalized coordate
-    normalizedCoordinates[1] = cameraPointsHomo[1]/cameraPointsHomo[2];                                             // Calculate second element of the normalized coordate
-
+    Vector2d normalizedCoordinates = cameraPointsHomo.block(0, 0, 2, 1)/cameraPointsHomo[2];                                                                                 // Define the normalized coordinates vector
+    
     double radius = normalizedCoordinates.norm();                                                                   // Compute the radial component of normalized coordinates
     double radialDistortionConstant = 1;                                                                            // Define radial distortion constant
 
@@ -79,11 +76,8 @@ Vector2i projectPoints(Matrix3d calibrationMatrix, MatrixXd transformationMatrix
 
     outputCameraPointsHomo = calibrationMatrix * normalizedCoordinatesHomo;                                         // Calculate output camera points in homogenous coordinates
     
-    int cameraCoordinate0 = outputCameraPointsHomo[0] / outputCameraPointsHomo[2];                                  // Normalize output camera coordinates and convert to integer (for pixel coordinates)
-    int cameraCoordinate1 = outputCameraPointsHomo[1] / outputCameraPointsHomo[2];                                  // Normalize output camera coordinates and convert to integer (for pixel coordinates)
-
-    outputCameraPoints << cameraCoordinate0, cameraCoordinate1;                                                     // Input integer values to output camera coordinates vector
-
+    outputCameraPointsHomo = outputCameraPointsHomo/outputCameraPointsHomo[2];
+    Vector2i outputCameraPoints; outputCameraPoints << outputCameraPointsHomo[0], outputCameraPointsHomo[1] ;       // Input integer values to output camera coordinates vector
     return outputCameraPoints;
 }
 
