@@ -25,12 +25,14 @@ int main(int argc, char** argv)
     string datapath = "/home/john/Nextcloud/Me/ETH/Master 4 (Fall 2020)/Vision Algorithms/Exercises/Exercise 2 - PnP/data/";    // Define path to data (for exercise 2)
     int numberOfDetectedCornersPerFrame = 12;
 
-    viz::Viz3d myWindow("Viz Demo");
-    viz::Viz3d sameWindow = viz::getWindowByName("Viz Demo");
-
     string calibrationMatrixFile = "K.txt";                                                                                     // Define the name of the calibration matrix file
     Matrix3d calibrationMatrix = getCalibrationMatrix(calibrationMatrixFile, datapath);                                         // Call function to read the calibration matrix file and make the calibration matrix
 
+    viz::Viz3d myWindow("Viz Demo");
+    viz::Viz3d sameWindow = viz::getWindowByName("Viz Demo");
+    myWindow.showWidget("Coordinate Widget", viz::WCoordinateSystem());
+    viz::Camera(calibrationMatrix(0, 0), calibrationMatrix(1, 1), calibrationMatrix(0, 2), calibrationMatrix(1, 2), Size(480, 360));
+    
     MatrixXd worldCoordinates = loadWorldCoordinatePoints("p_W_corners.txt", datapath, numberOfDetectedCornersPerFrame);        // Get world coordinates of detected points per frame
 
     string detectedCornersFileName = "detected_corners.txt";                                                                    // Define the name of the poses text file
