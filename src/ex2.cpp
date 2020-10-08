@@ -2,6 +2,7 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
+#include <opencv2/viz.hpp>          // Import the viz module for showing the camera in 3D space
 #include <Eigen/Core>               // Importing general Eigen library
 #include <Eigen/SVD>                // Allows to calculate SVD (using Jacobi or faster BDC methods)
 #include <Eigen/Dense>              // Allows to calulate the inverse of Eigen::Matrix
@@ -23,6 +24,9 @@ int main(int argc, char** argv)
     // Initlialization of main:
     string datapath = "/home/john/Nextcloud/Me/ETH/Master 4 (Fall 2020)/Vision Algorithms/Exercises/Exercise 2 - PnP/data/";    // Define path to data (for exercise 2)
     int numberOfDetectedCornersPerFrame = 12;
+
+    viz::Viz3d myWindow("Viz Demo");
+    viz::Viz3d sameWindow = viz::getWindowByName("Viz Demo");
 
     string calibrationMatrixFile = "K.txt";                                                                                     // Define the name of the calibration matrix file
     Matrix3d calibrationMatrix = getCalibrationMatrix(calibrationMatrixFile, datapath);                                         // Call function to read the calibration matrix file and make the calibration matrix
@@ -47,6 +51,8 @@ int main(int argc, char** argv)
         }
 
         currentDetectedCorners = getCameraCoordinates(detectedCornersFile, numberOfDetectedCornersPerFrame);                        // Detect corners of the current frame
+
+        sameWindow.spinOnce(1, true);
 
         drawPointCloud(image, currentDetectedCorners, numberOfDetectedCornersPerFrame);                                             // Draw the detected points in the image
 
