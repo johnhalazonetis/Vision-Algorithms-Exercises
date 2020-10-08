@@ -84,7 +84,7 @@ MatrixXd getCameraCoordinates(ifstream& detectedCornersFile, int& numberOfWorldC
     return currentCameraCoordinates;
 }
 
-MatrixXd estimatePoseDLT(MatrixXd& currentDetectedPoints, MatrixXd& worldPointCoordinates, Matrix3d& calibrationMatrix)
+MatrixXd estimatePoseDLT(MatrixXd& currentDetectedPoints, MatrixXd& worldPointCoordinates, Matrix3d& calibrationMatrix) // Function to estimate pose using DLT algorithm
 {
     MatrixXd currentPose(3, 4);                                                     // Define the current pose matrix
     int numberOfPoints = currentDetectedPoints.cols();                              // Find the number of points from the input matrix
@@ -124,16 +124,17 @@ MatrixXd estimatePoseDLT(MatrixXd& currentDetectedPoints, MatrixXd& worldPointCo
     return currentPose;
 }
 
-void reprojectPoints(MatrixXd& worldCoordinates, MatrixXd& currentPose, Matrix3d& calibrationMatrix, Mat& image)
+void reprojectPoints(MatrixXd& worldCoordinates, MatrixXd& currentPose, Matrix3d& calibrationMatrix, Mat& image)                    // Function to reproject points
 {
-    int numberOfPoints = worldCoordinates.cols();
+    int numberOfPoints = worldCoordinates.cols();                                                                                   // Determine the number of points we need to reproject
 
-    for (int pointN = 0; pointN < numberOfPoints; pointN++)
+    for (int pointN = 0; pointN < numberOfPoints; pointN++)                                                                         // For loop to loop through the points
     {
-        Vector3d currentWorldCoordinate = worldCoordinates.col(pointN);
-        Vector2i currentReprojectedPoint = projectPoints(calibrationMatrix, currentPose, currentWorldCoordinate, VectorXd::Zero(1));
+        Vector3d currentWorldCoordinate = worldCoordinates.col(pointN);                                                             // Define a 3D point taken from our world point cloud
+        Vector2i currentReprojectedPoint = projectPoints(calibrationMatrix, currentPose, currentWorldCoordinate, VectorXd::Zero(1));// Project the point onto the image using projectPoints function
 
-        Point cvCurrentReprojectedPoint = eigenVec2cvPoint(currentReprojectedPoint);
-        drawMarker(image, cvCurrentReprojectedPoint,  Scalar(0, 0, 255), MARKER_CROSS, 7, 1, 8);
+        Point cvCurrentReprojectedPoint = eigenVec2cvPoint(currentReprojectedPoint);                                                // Transform the Eigen::Vector2i into a cv::Point
+        drawMarker(image, cvCurrentReprojectedPoint,  Scalar(0, 0, 255), MARKER_CROSS, 7, 1, 8);                                    // Draw a marker at the projected point location
     }    
 }
+

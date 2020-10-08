@@ -52,7 +52,7 @@ int main(int argc, char** argv)
 
         MatrixXd currentPose = estimatePoseDLT(currentDetectedCorners, worldCoordinates, calibrationMatrix);                        // Estimate the current pose using DLT algorithm
 
-        reprojectPoints(worldCoordinates, currentPose, calibrationMatrix, image);
+        reprojectPoints(worldCoordinates, currentPose, calibrationMatrix, image);                                                   // Reproject the points using the current pose estimate that we have from estimatePoseDLT
         
         imshow("Display Image", image);                                                                                             // Show the input image
 
