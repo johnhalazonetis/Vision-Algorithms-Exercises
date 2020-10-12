@@ -21,17 +21,17 @@ using namespace Eigen;
 
 int main(int argc, char** argv)
 {
-    // Initlialization of main:
+    // Initialisation of main:
     string datapath = "/home/john/Nextcloud/Me/ETH/Master 4 (Fall 2020)/Vision Algorithms/Exercises/Exercise 2 - PnP/data/";    // Define path to data (for exercise 2)
     int numberOfDetectedCornersPerFrame = 12;
 
     string calibrationMatrixFile = "K.txt";                                                                                     // Define the name of the calibration matrix file
     Matrix3d calibrationMatrix = getCalibrationMatrix(calibrationMatrixFile, datapath);                                         // Call function to read the calibration matrix file and make the calibration matrix
 
-    viz::Viz3d myWindow("Viz Demo");
-    viz::Viz3d sameWindow = viz::getWindowByName("Viz Demo");
-    myWindow.showWidget("Coordinate Widget", viz::WCoordinateSystem());
-    viz::Camera(calibrationMatrix(0, 0), calibrationMatrix(1, 1), calibrationMatrix(0, 2), calibrationMatrix(1, 2), Size(480, 360));
+    viz::Viz3d myWindow("Viz Demo");                                                                                            // Create a window for visualizing the camera setup in 3D
+    viz::Viz3d sameWindow = viz::getWindowByName("Viz Demo");                                                                   // Name the window (useful for accessing in the future)
+    myWindow.showWidget("Coordinate Widget", viz::WCoordinateSystem());                                                         // Show coordinate widget in 3D space
+    viz::Camera(calibrationMatrix(0, 0), calibrationMatrix(1, 1), calibrationMatrix(0, 2), calibrationMatrix(1, 2), Size(480, 360)); // Create the camera widget
     
     MatrixXd worldCoordinates = loadWorldCoordinatePoints("p_W_corners.txt", datapath, numberOfDetectedCornersPerFrame);        // Get world coordinates of detected points per frame
 
@@ -60,7 +60,7 @@ int main(int argc, char** argv)
 
         MatrixXd currentPose = estimatePoseDLT(currentDetectedCorners, worldCoordinates, calibrationMatrix);                        // Estimate the current pose using DLT algorithm
 
-        reprojectPoints(worldCoordinates, currentPose, calibrationMatrix, image);                                                   // Reproject the points using the current pose estimate that we have from estimatePoseDLT
+        reprojectPoints(worldCoordinates, currentPose, calibrationMatrix, image);                                                   // Re-project the points using the current pose estimate that we have from estimatePoseDLT
         
         imshow("Display Image", image);                                                                                             // Show the input image
 
