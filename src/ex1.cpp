@@ -1,10 +1,11 @@
+#include <Eigen/Core>               // Importing general Eigen library
+#include <Eigen/SVD>                // Allows to calculate SVD (using Jacobi or faster BDC methods)
+#include <Eigen/Dense>              // Allows to calulate the inverse of Eigen::Matrix
 #include <opencv2/core.hpp>
+#include <opencv2/core/eigen.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
-#include <Eigen/Core>	
-#include <Eigen/SVD>
-#include <Eigen/QR>
 
 #include <sstream>
 #include <iostream>

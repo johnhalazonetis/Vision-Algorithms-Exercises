@@ -62,13 +62,14 @@ int main(int argc, char** argv)
         
         imshow("Display Image", image);                                                                                             // Show the input image
 
-        //Matrix img(480, 640);
+        Matx33d cvCalibrationMatrix;                                                                                                // Define calibration matrix in OpenCV matrix type
+        eigen2cv(calibrationMatrix, cvCalibrationMatrix);                                                                           // Convert Eigen::Matrix3d to cv:Matx33d
+        viz::WCameraPosition cp_frustum(cvCalibrationMatrix, image, 0.3, viz::Color::yellow());                                     // Create the camera frustum widget
 
-        //imshow("test", eigen2cv(img));
-
-        //viz::WCameraPosition cp_frustum(calibrationMatrix, image, 0.3, viz::Color::yellow());
-
-        //viz_window.showWidget("CP_Frustum", cp_frustum, currentPose);
+        MatrixXd currentTransform = MatrixXd::Identity(4, 4);
+        currentTransform.block<3, 4>(0, 0) = currentPose;
+        Matx44d cvCurrentPose; eigen2cv(currentTransform, cvCurrentPose);
+        viz_window.showWidget("CP_Frustum", cp_frustum, cvCurrentPose);
 
         viz_window.spinOnce(1, true);                                                                                               // Update viz window
         waitKey(17);                                                                                                                // Wait for X ms

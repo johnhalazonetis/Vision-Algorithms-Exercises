@@ -116,40 +116,6 @@ VectorXd getPose(ifstream& poseFile)  // Function to get the current pose of the
     return currentPose;
 }
 
-Mat eigenMat2cvMat(MatrixXd& inputMatrix)               // Make a cv::Mat from an Eigen::MatrixXd
-{
-    Mat outputMatrix(inputMatrix.rows(), inputMatrix.cols(), CV_64F);
-    double tempValue;
-
-    for (int rowNumber = 0; rowNumber < inputMatrix.rows(); rowNumber++)
-    {
-        for (int colNumber = 0; colNumber < inputMatrix.cols(); colNumber++)
-        {
-            tempValue = inputMatrix(rowNumber, colNumber);
-            outputMatrix.at<double>(rowNumber, colNumber) = tempValue;
-        }
-    }
-
-    return outputMatrix;
-}
-
-Mat eigenMatInt2cvMat(MatrixXi& inputMatrix)            // Make a cv::Mat from an Eigen::MatrixXd
-{
-    Mat outputMatrix(inputMatrix.rows(), inputMatrix.cols(), CV_64F);
-    int tempValue;
-
-    for (int rowNumber = 0; rowNumber < inputMatrix.rows(); rowNumber++)
-    {
-        for (int colNumber = 0; colNumber < inputMatrix.cols(); colNumber++)
-        {
-            tempValue = inputMatrix(rowNumber, colNumber);
-            outputMatrix.at<double>(rowNumber, colNumber) = tempValue;
-        }
-    }
-
-    return outputMatrix;
-}
-
 Point eigenVec2cvPoint(Vector2i& inputVector)           // Make a cv::Point from an Eigen::Vector2i
 {
     Point outputPoint;
@@ -239,7 +205,7 @@ void drawCube(Mat& image, Vector3d& cubeOrigin, double& length, Matrix3d& calibr
     //cout << outputCameraCorners << endl;
 
     Mat cvOutputCameraCorners(2, 8, CV_64F);
-    cvOutputCameraCorners = eigenMatInt2cvMat(outputCameraCorners);
+    eigen2cv(outputCameraCorners, cvOutputCameraCorners);
     
     // Draw lines of the cube on the image
     line(image, Point(cvOutputCameraCorners.col(0)), Point(cvOutputCameraCorners.col(1)), Scalar(0, 0, 255), 2, LINE_8);
@@ -261,7 +227,7 @@ void drawCube(Mat& image, Vector3d& cubeOrigin, double& length, Matrix3d& calibr
 void drawPointCloud(Mat& image, MatrixXd pointCloud, int numberOfPoints)
 {
     Mat cvPointCloud(2, numberOfPoints, CV_64F);
-    cvPointCloud = eigenMat2cvMat(pointCloud);
+    eigen2cv(pointCloud, cvPointCloud);
 
     for (int pointN = 0; pointN < numberOfPoints; pointN++)
     {
