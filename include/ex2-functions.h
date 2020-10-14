@@ -137,4 +137,3 @@ void reprojectPoints(MatrixXd& worldCoordinates, MatrixXd& currentPose, Matrix3d
         drawMarker(image, cvCurrentReprojectedPoint,  Scalar(0, 0, 255), MARKER_CROSS, 7, 1, 8);                                    // Draw a marker at the projected point location
     }    
 }
-

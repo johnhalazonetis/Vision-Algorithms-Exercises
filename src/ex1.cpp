@@ -19,7 +19,7 @@ using namespace Eigen;
 
 int main(int argc, char** argv)
 {
-    // Initlialization of main:
+    // Initialisation of main:
 
     string datapath = "/home/john/Nextcloud/Me/ETH/Master 4 (Fall 2020)/Vision Algorithms/Exercises/Exercise 1 - Augmented Reality Wireframe Cube/data/";     // Define path to data (for exercise 1)
 

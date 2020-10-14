@@ -1,11 +1,12 @@
+#include <Eigen/Core>               // Importing general Eigen library
+#include <Eigen/SVD>                // Allows to calculate SVD (using Jacobi or faster BDC methods)
+#include <Eigen/Dense>              // Allows to calulate the inverse of Eigen::Matrix
 #include <opencv2/core.hpp>
+#include <opencv2/core/eigen.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/viz.hpp>          // Import the viz module for showing the camera in 3D space
-#include <Eigen/Core>               // Importing general Eigen library
-#include <Eigen/SVD>                // Allows to calculate SVD (using Jacobi or faster BDC methods)
-#include <Eigen/Dense>              // Allows to calulate the inverse of Eigen::Matrix
 
 #include <sstream>
 #include <iostream>
@@ -28,10 +29,9 @@ int main(int argc, char** argv)
     string calibrationMatrixFile = "K.txt";                                                                                     // Define the name of the calibration matrix file
     Matrix3d calibrationMatrix = getCalibrationMatrix(calibrationMatrixFile, datapath);                                         // Call function to read the calibration matrix file and make the calibration matrix
 
-    viz::Viz3d myWindow("Viz Demo");                                                                                            // Create a window for visualizing the camera setup in 3D
-    viz::Viz3d sameWindow = viz::getWindowByName("Viz Demo");                                                                   // Name the window (useful for accessing in the future)
-    myWindow.showWidget("Coordinate Widget", viz::WCoordinateSystem());                                                         // Show coordinate widget in 3D space
-    viz::Camera(calibrationMatrix(0, 0), calibrationMatrix(1, 1), calibrationMatrix(0, 2), calibrationMatrix(1, 2), Size(480, 360)); // Create the camera widget
+    viz::Viz3d viz_window("Camera Position");                                                                                   // Name the window (useful for accessing in the future)
+    viz_window.setBackgroundColor();                                                                                            // Set background color (default is black)
+    viz_window.showWidget("Coordinate Widget", viz::WCoordinateSystem());                                                       // Show coordinate widget in 3D space
     
     MatrixXd worldCoordinates = loadWorldCoordinatePoints("p_W_corners.txt", datapath, numberOfDetectedCornersPerFrame);        // Get world coordinates of detected points per frame
 
@@ -54,8 +54,6 @@ int main(int argc, char** argv)
 
         currentDetectedCorners = getCameraCoordinates(detectedCornersFile, numberOfDetectedCornersPerFrame);                        // Detect corners of the current frame
 
-        sameWindow.spinOnce(1, true);
-
         drawPointCloud(image, currentDetectedCorners, numberOfDetectedCornersPerFrame);                                             // Draw the detected points in the image
 
         MatrixXd currentPose = estimatePoseDLT(currentDetectedCorners, worldCoordinates, calibrationMatrix);                        // Estimate the current pose using DLT algorithm
@@ -64,7 +62,17 @@ int main(int argc, char** argv)
         
         imshow("Display Image", image);                                                                                             // Show the input image
 
+        //Matrix img(480, 640);
+
+        //imshow("test", eigen2cv(img));
+
+        //viz::WCameraPosition cp_frustum(calibrationMatrix, image, 0.3, viz::Color::yellow());
+
+        //viz_window.showWidget("CP_Frustum", cp_frustum, currentPose);
+
+        viz_window.spinOnce(1, true);                                                                                               // Update viz window
         waitKey(17);                                                                                                                // Wait for X ms
+        viz_window.removeAllWidgets();                                                                                              // Remove all widgets drawn in the previous frame
     }
 
     detectedCornersFile.close();                                                                                                // Close detected corners file
