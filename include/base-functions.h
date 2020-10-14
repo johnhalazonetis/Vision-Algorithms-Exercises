@@ -128,23 +128,6 @@ Point eigenVec2cvPoint(Vector2i& inputVector)           // Make a cv::Point from
     return outputPoint;
 }
 
-MatrixXd cvMat2eigenMat(Mat& inputMatrix)               // Make an Eigen::MatrixXd from a cv::Mat
-{
-    MatrixXd outputMatrix(inputMatrix.rows, inputMatrix.cols);
-    double tempValue;
-
-    for (int rowNumber = 0; rowNumber < inputMatrix.rows; rowNumber++)
-    {
-        for (int colNumber = 0; colNumber < inputMatrix.cols; colNumber++)
-        {
-            tempValue = inputMatrix.at<double>(rowNumber, colNumber);
-            outputMatrix(rowNumber, colNumber) = tempValue;
-        }
-    }
-    
-    return outputMatrix;
-}
-
 VectorXd cvMat2eigenVec(Mat& inputVector)               // Make an Eigen::VectorXd from a cv::Mat
 {
     VectorXd outputVector(inputVector.rows, 1);

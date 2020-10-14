@@ -40,6 +40,10 @@ int main(int argc, char** argv)
     detectedCornersFile.open (datapath + detectedCornersFileName);                                                              // Open the file in question
     MatrixXd currentDetectedCorners(2, numberOfDetectedCornersPerFrame);                                                        // Create current pose matrix
 
+    Matx33d cvCalibrationMatrix;                                                                                                // Define calibration matrix in OpenCV matrix type
+    eigen2cv(calibrationMatrix, cvCalibrationMatrix);                                                                           // Convert Eigen::Matrix3d to cv:Matx33d
+    draw3DPointCloud(worldCoordinates, viz_window);
+
     VideoCapture cap(datapath + "images_undistorted/img_%04d.jpg");                                                             // Start video capture from images found in folder
     while( cap.isOpened() )                                                                                                     // Loop while we are receiving images from folder
     {
@@ -62,18 +66,14 @@ int main(int argc, char** argv)
         
         imshow("Display Image", image);                                                                                             // Show the input image
 
-        Matx33d cvCalibrationMatrix;                                                                                                // Define calibration matrix in OpenCV matrix type
-        eigen2cv(calibrationMatrix, cvCalibrationMatrix);                                                                           // Convert Eigen::Matrix3d to cv:Matx33d
-        viz::WCameraPosition cp_frustum(cvCalibrationMatrix, image, 0.3, viz::Color::yellow());                                     // Create the camera frustum widget
+        viz::WCameraPosition cp_frustum(cvCalibrationMatrix, 1, viz::Color::yellow());                                     // Create the camera frustum widget
 
-        MatrixXd currentTransform = MatrixXd::Identity(4, 4);
-        currentTransform.block<3, 4>(0, 0) = currentPose;
-        Matx44d cvCurrentPose; eigen2cv(currentTransform, cvCurrentPose);
-        viz_window.showWidget("CP_Frustum", cp_frustum, cvCurrentPose);
+        MatrixXd currentTransform = MatrixXd::Identity(4, 4); currentTransform.block<3, 4>(0, 0) = currentPose;                     // Create "currentTransform" matrix as homogenous transf. of currentPose
+        Matx44d cvCurrentPose; eigen2cv(currentTransform, cvCurrentPose);                                                           // Create equivalent matrix in OpenCV and convert currentTransform to OpenCV Matx44d
+        viz_window.showWidget("CP_Frustum", cp_frustum, cvCurrentPose);                                                             // Move the camera widget with respect to the calculated current pose of the camera
 
         viz_window.spinOnce(1, true);                                                                                               // Update viz window
         waitKey(17);                                                                                                                // Wait for X ms
-        viz_window.removeAllWidgets();                                                                                              // Remove all widgets drawn in the previous frame
     }
 
     detectedCornersFile.close();                                                                                                // Close detected corners file

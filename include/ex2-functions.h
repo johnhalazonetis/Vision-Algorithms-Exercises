@@ -137,3 +137,20 @@ void reprojectPoints(MatrixXd& worldCoordinates, MatrixXd& currentPose, Matrix3d
         drawMarker(image, cvCurrentReprojectedPoint,  Scalar(0, 0, 255), MARKER_CROSS, 7, 1, 8);                                    // Draw a marker at the projected point location
     }    
 }
+
+void draw3DPointCloud(MatrixXd& pointCloud, viz::Viz3d& vizWindow)
+{
+    int numberOfPoints = pointCloud.cols();
+    Point3d tempPoint;
+    Matx44d tempTransform;
+    MatrixXd homoTransform = MatrixXd::Identity(4, 4);
+
+    for (int pointN = 0; pointN < numberOfPoints; pointN++)
+    {
+        homoTransform.topRightCorner<3, 1>() = pointCloud.col(pointN);
+        eigen2cv(homoTransform, tempTransform);
+        tempPoint = Point3d(pointCloud(0, pointN), pointCloud(1, pointN), pointCloud(2, pointN));
+        viz::WSphere point(tempPoint, 1, 10, viz::Color::white());
+        vizWindow.showWidget("tempPoint", point, tempTransform);
+    }
+}
