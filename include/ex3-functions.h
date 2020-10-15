@@ -126,8 +126,9 @@ Mat shiTomasi(Mat& img, int& patchSize)
     Mat tempTrace = I_X2Patch - I_Y2Patch; multiply(tempTrace, tempTrace, tempTrace);
     Mat tempTrace2; multiply(tempTrace, tempTrace, tempTrace2);
     Mat tempCalc = tempTrace2 - 4*tempDet;
-    imshow("Test", tempCalc);
-    sqrt(tempCalc, tempCalc); // TODO: Need to fix the sqrt (needs a CV_64F matrix)
+    tempCalc.convertTo(tempCalc, CV_64F);
+    tempTrace.convertTo(tempTrace, CV_64F);
+    sqrt(tempCalc, tempCalc);
 
     // Calculate the two eigenvalues of the matrix
     Mat lambda1 = 0.5*(tempTrace + tempCalc);
