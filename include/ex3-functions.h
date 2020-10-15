@@ -8,7 +8,7 @@ MatrixXd describeKeypoints(Mat& img, int& keypoints, int r)
 
    MatrixXd descriptors;
 
-   // ...
+   // TODO: start function
 
    return descriptors;
 }
@@ -66,7 +66,7 @@ VectorXd matchDescriptors(MatrixXd& query_descriptors, MatrixXd& databaseDescrip
 
    VectorXd matches;
 
-   // ...
+   // TODO: start function
 
    return matches;
 }
@@ -119,12 +119,22 @@ Mat shiTomasi(Mat& img, int& patchSize)
     copyMakeBorder(I_Y2Patch, I_Y2Patch, borderWidth, borderWidth, borderWidth, borderWidth, BORDER_CONSTANT);
     copyMakeBorder(I_XI_YPatch, I_XI_YPatch, borderWidth, borderWidth, borderWidth, borderWidth, BORDER_CONSTANT);
 
+    // Compute the trace and the determinant (we use them to find the eigenvalues)
     Mat tempDet1; multiply(I_X2Patch, I_Y2Patch, tempDet1);
     Mat tempDet2; multiply(I_XI_YPatch, I_XI_YPatch, tempDet2);
+    Mat tempDet = tempDet1 - tempDet2;
     Mat tempTrace = I_X2Patch - I_Y2Patch; multiply(tempTrace, tempTrace, tempTrace);
+    Mat tempTrace2; multiply(tempTrace, tempTrace, tempTrace2);
+    Mat tempCalc = tempTrace2 - 4*tempDet;
+    imshow("Test", tempCalc);
+    sqrt(tempCalc, tempCalc); // TODO: Need to fix the sqrt (needs a CV_64F matrix)
+
+    // Calculate the two eigenvalues of the matrix
+    Mat lambda1 = 0.5*(tempTrace + tempCalc);
+    Mat lambda2 = 0.5*(tempTrace - tempCalc);
 
     // Compute the harris score for each pixel (from the M matrix)
-    Mat scores; // TODO: Insert formula for eigenvalues of a 2x2 matrix
+    Mat scores = min(lambda1, lambda2);
 
     return scores;
 }
