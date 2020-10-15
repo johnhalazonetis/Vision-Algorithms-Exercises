@@ -49,6 +49,7 @@ int main(int argc, char** argv)
         }
 
         scores = harrisScores(image, cornerPatchSize, harrisKappa);
+        // TODO: Compare harris scores and Shi-Tomasi scores (see which is better in practice)
         // keypoints = selectKeypoints(scores, numKeypoints, nonmaximumSupressionRadius);
         // (plot the keypoints)
 
@@ -63,7 +64,7 @@ int main(int argc, char** argv)
         previousKeypoints = keypoints;
         previousDesc = desc; */
 
-        // imshow("Display Image", image);                                                                                                                 // Show the input image
+        imshow("Display Image", scores);                                                                                                                 // Show the input image
 
         waitKey(1);                                                                                                                                    // Wait for X ms
         frameNumber++;

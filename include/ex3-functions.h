@@ -37,15 +37,17 @@ Mat harrisScores(Mat& img, int& patchSize, double& kappa)
     Mat I_XI_YPatch; filter2D(I_XI_Y, I_XI_YPatch, -1, ones);
     
     // Add a border of (patchSize-1)/2 around each patch image
-
-    imshow("Test image", I_XI_YPatch);
+    int borderWidth = (patchSize-1)/2;
+    copyMakeBorder(I_X2Patch, I_X2Patch, borderWidth, borderWidth, borderWidth, borderWidth, BORDER_CONSTANT);
+    copyMakeBorder(I_Y2Patch, I_Y2Patch, borderWidth, borderWidth, borderWidth, borderWidth, BORDER_CONSTANT);
+    copyMakeBorder(I_XI_YPatch, I_XI_YPatch, borderWidth, borderWidth, borderWidth, borderWidth, BORDER_CONSTANT);
 
     Mat tempDet1; multiply(I_X2Patch, I_Y2Patch, tempDet1);
     Mat tempDet2; multiply(I_XI_YPatch, I_XI_YPatch, tempDet2);
-    Mat tempTrace = I_X2Patch - I_Y2Patch;
+    Mat tempTrace = I_X2Patch - I_Y2Patch; multiply(tempTrace, tempTrace, tempTrace);
 
     // Compute the harris score for each pixel (from the M matrix)
-    Mat scores = tempDet1 - tempDet2 - kappa*pow(tempTrace, 2);
+    Mat scores = tempDet1 - tempDet2 - kappa*tempTrace;
 
     return scores;
 }
@@ -83,16 +85,46 @@ MatrixXd selectKeypoints(MatrixXd& scores, int num, int r)
 
     MatrixXd keypoints;
 
-    // ...
+    // TODO: start function
 
     return keypoints;
 }
 
-MatrixXd shiTomasi(Mat& img, int& patchSize)
+Mat shiTomasi(Mat& img, int& patchSize)
 {
-    MatrixXd scores;
+    // Define kernels:
+    Matx33d Sobelx(-1, 0, 1, -2, 0, 2, -1, 0, 1);
+    Matx33d Sobely(-1, -2, -1, 0, 0, 0, 1, 2, 1);
 
-    // ...
+    // Convolve the images with the given sobel kernels:
+    Mat I_X; filter2D(img, I_X, -1, Sobelx);
+    Mat I_Y; filter2D(img, I_Y, -1, Sobely);
+
+    // Compute the M matrix with the given image patch size
+    Mat I_X2; multiply(I_X, I_X, I_X2);
+    Mat I_Y2; multiply(I_Y, I_Y, I_Y2);
+    Mat I_XI_Y; multiply(I_X, I_Y, I_XI_Y);
+
+    // Define a matrix of ones (for patch summing)
+    Mat ones = Mat::ones(patchSize, patchSize, CV_64F);
+
+    // Sum the values of the patch using the ones matrix
+    Mat I_X2Patch; filter2D(I_X2, I_X2Patch, -1, ones);
+    Mat I_Y2Patch; filter2D(I_Y2, I_Y2Patch, -1, ones);
+    Mat I_XI_YPatch; filter2D(I_XI_Y, I_XI_YPatch, -1, ones);
+    
+    // Add a border of (patchSize-1)/2 around each patch image
+    int borderWidth = (patchSize-1)/2;
+    copyMakeBorder(I_X2Patch, I_X2Patch, borderWidth, borderWidth, borderWidth, borderWidth, BORDER_CONSTANT);
+    copyMakeBorder(I_Y2Patch, I_Y2Patch, borderWidth, borderWidth, borderWidth, borderWidth, BORDER_CONSTANT);
+    copyMakeBorder(I_XI_YPatch, I_XI_YPatch, borderWidth, borderWidth, borderWidth, borderWidth, BORDER_CONSTANT);
+
+    Mat tempDet1; multiply(I_X2Patch, I_Y2Patch, tempDet1);
+    Mat tempDet2; multiply(I_XI_YPatch, I_XI_YPatch, tempDet2);
+    Mat tempTrace = I_X2Patch - I_Y2Patch; multiply(tempTrace, tempTrace, tempTrace);
+
+    // Compute the harris score for each pixel (from the M matrix)
+    Mat scores; // TODO: Insert formula for eigenvalues of a 2x2 matrix
 
     return scores;
 }
