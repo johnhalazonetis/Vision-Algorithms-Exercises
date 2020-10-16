@@ -32,14 +32,13 @@ int main(int argc, char** argv)
     int descriptorRadius = 9;
     int matchLambda = 4;
 
-    Mat scores, keypoints, desc, previousDesc, previousKeypoints;
+    Mat scores, keypoints, desc, previousDesc, previousKeypoints, image;
     VectorXd matches;
     int frameNumber = 0;
 
     VideoCapture cap(datapath + "%06d.png");                                                // Start video capture from images found in folder
     while( cap.isOpened() )                                                                 // Loop while we are receiving images from folder
     {
-        Mat image;                                                                          // Define image as matrix
         cap.read(image);                                                                    // Read image
 
         if (!image.data)                                                                    // If statement in case the file cannot be opened or does not exist
@@ -62,7 +61,7 @@ int main(int argc, char** argv)
 
         previousKeypoints = keypoints;
         previousDesc = desc; */
-
+        imshow("Image", image);
         imshow("Display Image", scores);                                                    // Show the input image
 
         waitKey(1);                                                                         // Wait for X ms
