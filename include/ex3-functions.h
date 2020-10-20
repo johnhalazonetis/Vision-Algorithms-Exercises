@@ -29,7 +29,7 @@ Mat harrisScores(Mat& img, int& patchSize, double& kappa)
     Mat I_XI_Y; multiply(I_X, I_Y, I_XI_Y);
 
     // Define a matrix of ones (for patch summing)
-    Mat ones = Mat::ones(patchSize, patchSize, CV_64F);
+    Mat ones = 1/(pow(patchSize, 2)) * Mat::ones(patchSize, patchSize, CV_64F);
 
     // Sum the values of the patch using the ones matrix
     Mat I_X2Patch; filter2D(I_X2, I_X2Patch, -1, ones);
@@ -76,7 +76,7 @@ void plotMatches(VectorXd& matches, VectorXd queryKeypoints, VectorXd databaseKe
 
 }
 
-MatrixXd selectKeypoints(MatrixXd& scores, int num, int r)
+MatrixXd selectKeypoints(MatrixXd& scores, int numberOfKeypoints, int r)
 {
     /*
     Selects the num best scores as keypoints and performs non-maximum 
@@ -106,12 +106,12 @@ Mat shiTomasi(Mat& img, int& patchSize)
     Mat I_XI_Y; multiply(I_X, I_Y, I_XI_Y);
 
     // Define a matrix of ones (for patch summing)
-    Mat ones = Mat::ones(patchSize, patchSize, CV_64F);
+    Mat boxFilter = Mat::ones(patchSize, patchSize, CV_64F);
 
     // Sum the values of the patch using the ones matrix
-    Mat I_X2Patch; filter2D(I_X2, I_X2Patch, -1, ones);
-    Mat I_Y2Patch; filter2D(I_Y2, I_Y2Patch, -1, ones);
-    Mat I_XI_YPatch; filter2D(I_XI_Y, I_XI_YPatch, -1, ones);
+    Mat I_X2Patch; filter2D(I_X2, I_X2Patch, -1, boxFilter);
+    Mat I_Y2Patch; filter2D(I_Y2, I_Y2Patch, -1, boxFilter);
+    Mat I_XI_YPatch; filter2D(I_XI_Y, I_XI_YPatch, -1, boxFilter);
     
     // Add a border of (patchSize-1)/2 around each patch image
     int borderWidth = (patchSize-1)/2;

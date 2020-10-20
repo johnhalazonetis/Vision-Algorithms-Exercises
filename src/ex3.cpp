@@ -6,6 +6,7 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
+#include <stdint.h>
 
 #include <sstream>
 #include <iostream>
@@ -34,12 +35,10 @@ int main(int argc, char** argv)
 
     Mat scores, keypoints, desc, previousDesc, previousKeypoints, image;
     VectorXd matches;
-    int frameNumber = 0;
-
-    VideoCapture cap(datapath + "%06d.png");                                                // Start video capture from images found in folder
-    while( cap.isOpened() )                                                                 // Loop while we are receiving images from folder
+    VideoCapture cap(datapath + "images/%06d.jpg");                                                             // Start video capture from images found in folder
+    while( cap.isOpened() )                                                                                                     // Loop while we are receiving images from folder
     {
-        cap.read(image);                                                                    // Read image
+        cap.read(image);                            // Read image
 
         if (!image.data)                                                                    // If statement in case the file cannot be opened or does not exist
         {
@@ -62,10 +61,9 @@ int main(int argc, char** argv)
         previousKeypoints = keypoints;
         previousDesc = desc; */
         imshow("Image", image);
-        imshow("Display Image", scores);                                                    // Show the input image
+        //imshow("Display Image", scores);                                                    // Show the input image
 
         waitKey(1);                                                                         // Wait for X ms
-        frameNumber++;
     }
 
     destroyAllWindows();                                                                    // Close all windows
