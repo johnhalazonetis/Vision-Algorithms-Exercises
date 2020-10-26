@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 
-project( 3DVis )
+project( VisionAlgorithmsExercises )
 
 find_package( OpenCV REQUIRED )
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)

@@ -1,12 +1,23 @@
-// TODO: Convert all matrices to std::arrays or cv::Mat
+Mat importImageGreyRescale(string datapath, double rescaleFactor)                           // Function to read the input image file
+{
+    Mat inputImage = imread(datapath, IMREAD_GRAYSCALE);                                    // Try to read the input image file
+    if (!inputImage.data)                                                                   // If statement in case the file cannot be opened or does not exist
+    {
+        cout << "importImageGreyRescale: No image data in image: " << datapath << endl;     // Output that there was a problem inporting the image
+        EXIT_FAILURE;                                                                       // End program
+    }
 
-Mat derotatePatch(Mat& image, Vector2d& location, int& patchSize, double orientation)
+    resize(inputImage, inputImage, Size(), rescaleFactor, rescaleFactor);                   // Resize image to the specified rescale factor
+
+    return inputImage;
+}
+
+Mat derotatePatch(Mat& image, Vec2d& location, int& patchSize, double orientation)
 {
     int patchRadius = patchSize/2;
-    MatrixXd derotatedPatch = MatrixXd::Zero(patchSize, patchSize);
+    Mat derotatedPatch = Mat::zeros(patchSize, patchSize, CV_64F);
     
-    Mat paddedImage;// = MatrixXd::Zero(image.rows()+2*patchRadius, image.cols()+2*patchRadius);
-    paddedImage.block(patchRadius, patchRadius, image.rows(), image.cols()) = image;
+    Mat paddedImage; copyMakeBorder(paddedImage, paddedImage, patchRadius, patchRadius, patchRadius, patchRadius, BORDER_CONSTANT);
 
     // Compute the derotated patch
     for (int px = 0; px < patchSize; px++)
@@ -25,19 +36,19 @@ Mat derotatePatch(Mat& image, Vector2d& location, int& patchSize, double orienta
             double yPatchRotated = location(0) - yRotated;
 
             // Sample image (using nearest neighbor sampling as opposed to more accuracte bilinear sampling)
-            derotatedPatch(px, py) = paddedImage(ceil(yPatchRotated + patchRadius), ceil(xPatchRotated + patchRadius));
+            derotatedPatch.at<double>(px, py) = paddedImage.at<double>(ceil(yPatchRotated + patchRadius), ceil(xPatchRotated + patchRadius));
         }
     }
 
     return derotatedPatch;
 }
 
-VectorXd weightedHistC(VectorXd& vals, VectorXd& weights, VectorXd& edges)
+/*VectorXd weightedHistC(VectorXd& vals, VectorXd& weights, VectorXd& edges)
 {
     if (vals.rows() != weights.rows())
     {
         cout << "Vals and weights must be vectors of the same length!";
-        return -1;
+        EXIT_FAILURE;
     }
 
     int numberOfEdges = edges.rows();
@@ -45,8 +56,13 @@ VectorXd weightedHistC(VectorXd& vals, VectorXd& weights, VectorXd& edges)
 
     for (int n = 0; n < numberOfEdges; n++)
     {
-        VectorXd ind = 
+        VectorXd ind = ;//...
+        if (condition)
+        {
+            code
+        }
+        
     }
     
     return h;
-}
+}*/

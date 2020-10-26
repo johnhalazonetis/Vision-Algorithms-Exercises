@@ -217,14 +217,3 @@ void drawPointCloud(Mat& image, MatrixXd pointCloud, int numberOfPoints)
         circle(image, Point(cvPointCloud.col(pointN)), 2.5, Scalar(0, 255, 255), FILLED, LINE_8);
     }
 }
-
-MatrixXd importImageToEigen(string datapath, double& rescaleFactor)
-{
-    Mat tempImage;
-    Mat tempImage = imread(datapath, IMREAD_GRAYSCALE);
-    resize(tempImage, tempImage, Size(), rescaleFactor, rescaleFactor);
-    MatrixXd eigenImage;
-    cv2eigen(tempImage, eigenImage);
-
-    return eigenImage;
-}
