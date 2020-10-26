@@ -1,8 +1,4 @@
-#include <Eigen/Core>               // Importing general Eigen library
-#include <Eigen/SVD>                // Allows to calculate SVD (using Jacobi or faster BDC methods)
-#include <Eigen/Dense>              // Allows to calulate the inverse of Eigen::Matrix
 #include <opencv2/core.hpp>
-#include <opencv2/core/eigen.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
@@ -14,7 +10,6 @@
 
 using namespace std;
 using namespace cv;
-using namespace Eigen;
 
 // Include the functions that were made during exercises
 #include "base-functions.h"
@@ -34,7 +29,7 @@ int main(int argc, char** argv)
     int matchLambda = 4;
 
     Mat scores, keypoints, desc, previousDesc, previousKeypoints, image;
-    VectorXd matches;
+    int matches[1];
     VideoCapture cap(datapath + "images/%06d.jpg");                                                             // Start video capture from images found in folder
     while( cap.isOpened() )                                                                                                     // Loop while we are receiving images from folder
     {

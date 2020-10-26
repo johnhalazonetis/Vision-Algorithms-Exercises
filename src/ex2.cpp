@@ -26,8 +26,7 @@ int main(int argc, char** argv)
     string datapath = "/home/john/Nextcloud/Me/ETH/Master 4 (Fall 2020)/Vision Algorithms/Exercises/Exercise 2 - PnP/data/";    // Define path to data (for exercise 2)
     int numberOfDetectedCornersPerFrame = 12;
 
-    string calibrationMatrixFile = "K.txt";                                                                                     // Define the name of the calibration matrix file
-    Matrix3d calibrationMatrix = getCalibrationMatrix(calibrationMatrixFile, datapath);                                         // Call function to read the calibration matrix file and make the calibration matrix
+    Matx33d calibrationMatrix = getCalibrationMatrix(datapath + "K.txt");                                         // Call function to read the calibration matrix file and make the calibration matrix
 
     viz::Viz3d viz_window("Camera Position");                                                                                   // Name the window (useful for accessing in the future)
     viz_window.setBackgroundColor();                                                                                            // Set background color (default is black)
@@ -40,8 +39,6 @@ int main(int argc, char** argv)
     detectedCornersFile.open (datapath + detectedCornersFileName);                                                              // Open the file in question
     MatrixXd currentDetectedCorners(2, numberOfDetectedCornersPerFrame);                                                        // Create current pose matrix
 
-    Matx33d cvCalibrationMatrix;                                                                                                // Define calibration matrix in OpenCV matrix type
-    eigen2cv(calibrationMatrix, cvCalibrationMatrix);                                                                           // Convert Eigen::Matrix3d to cv:Matx33d
     draw3DPointCloud(worldCoordinates, viz_window);
 
     VideoCapture cap(datapath + "images_undistorted/img_%04d.jpg");                                                             // Start video capture from images found in folder
