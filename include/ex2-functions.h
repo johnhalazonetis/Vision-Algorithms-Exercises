@@ -1,50 +1,46 @@
-MatrixXd loadWorldCoordinatePoints(string worldCoordinatesFileName, string& datapath, int& numberOfWorldCoordinates)    // Function to put all found world coordinates in text file into matrix
+void loadWorldCoordinatePoints(string worldCoordinatesFileName, Vec3d *worldCoordinates)    // Function to put all found world coordinates in text file into matrix
 {
-    MatrixXd worldCoordinates(3, numberOfWorldCoordinates);                     // Define world coordinates matrix
-    double tempValue;
-    ifstream worldCoordinatesFile;                                              // Make an inward stream of data called 'worldCoordinatesFile'
-    worldCoordinatesFile.open (datapath + worldCoordinatesFileName);            // Open the file
+    Vec3d tempValue;                                                                    // Define tempValue Vec3d
+    ifstream worldCoordinatesFile;                                                      // Make an inward stream of data called 'worldCoordinatesFile'
+    worldCoordinatesFile.open(worldCoordinatesFileName);                                // Open the file
 
-    for (int colNumber = 0; colNumber < numberOfWorldCoordinates; colNumber++)  // For loop to go through all of the 3D points in the file
+    for (int pointNumber = 0; pointNumber < sizeof(worldCoordinates); pointNumber++)    // For loop to go through all of the 3D points in the file
     {
-        for (int rowNumber = 0; rowNumber < 3; rowNumber++)                     // For loop to go through the values of each point
+        for (int axis = 0; axis < 3; axis++)                                            // For loop to go through the values of each point
         {
-            worldCoordinatesFile >> tempValue;
-            worldCoordinates(rowNumber, colNumber) = tempValue;                 // Input the value into the matrix
-        }        
-    }
-
-    worldCoordinatesFile.close();                                               // Close the file
-    return worldCoordinates;                                                    // Return the resulting matrix
-}
-
-MatrixXd getCameraCoordinates(ifstream& detectedCornersFile, int& numberOfWorldCoordinates)
-{
-    MatrixXd currentCameraCoordinates(2, numberOfWorldCoordinates);
-
-    for (int colNumber = 0; colNumber < numberOfWorldCoordinates; colNumber++)
-    {
-        for (int rowNumber = 0; rowNumber < 2; rowNumber++)
-        {
-            detectedCornersFile >> currentCameraCoordinates(rowNumber, colNumber);
+            worldCoordinatesFile >> tempValue[axis];                                    // Input world coordinates into the current vector
         }
+        worldCoordinates[pointNumber] = tempValue;                                      // Input vector into the worldCoordinates array
     }
 
-    return currentCameraCoordinates;
+    worldCoordinatesFile.close();                                                       // Close the file
 }
 
-MatrixXd estimatePoseDLT(MatrixXd& currentDetectedPoints, MatrixXd& worldPointCoordinates, Matrix3d& calibrationMatrix) // Function to estimate pose using DLT algorithm
+void getCameraCoordinates(ifstream& detectedCornersFile, int& numberOfWorldCoordinates, Vec2i *currentCameraCoordinates)
 {
-    MatrixXd currentPose(3, 4);                                                     // Define the current pose matrix
-    int numberOfPoints = currentDetectedPoints.cols();                              // Find the number of points from the input matrix
+    Vec2i tempValue;
+    for (int pointNumber = 0; pointNumber < numberOfWorldCoordinates; pointNumber++)
+    {
+        for (int axis = 0; axis < 2; axis++)
+        {
+            detectedCornersFile >> tempValue[axis];
+        }
+        currentCameraCoordinates[pointNumber]
+    }
+}
 
-    MatrixXd Q = MatrixXd::Zero(numberOfPoints*2, 12);                              // Create matrix Q
+Matx34d estimatePoseDLT(Vec2i *currentDetectedPoints, Vec3d *worldPointCoordinates, Matx33d& calibrationMatrix) // Function to estimate pose using DLT algorithm
+{
+    Matx34d currentPose;                                                            // Define the current pose matrix
+    int numberOfPoints = sizeof(currentDetectedPoints);                             // Find the number of points from the input matrix
+
+    Matx Q = Matx::zeros(numberOfPoints*2, 12);                                     // Create matrix Q
 
     for (int pointN = 0; pointN < numberOfPoints; pointN++)                         // Loop through all of the points that we have (to make the Q matrix)
     {
-        Vector4d worldCoords; worldCoords << worldPointCoordinates.col(pointN), 1;  // Make homogeneous world coordinates
-        Vector3d pixelCoords; pixelCoords << currentDetectedPoints.col(pointN), 1;  // Make homogeneous pixel coordinates
-        Vector3d normalizedCoords = calibrationMatrix.inverse() * pixelCoords;      // Calculate normalized pixel coordinates using inverted K matrix
+        Vec4d worldCoords; vconcat(worldPointCoordinates[pointN], 1, worldCoords);  // Make homogeneous world coordinates
+        Vec3d pixelCoords; vconcat(currentDetectedPoints[pointN], 1, pixelCoords);  // Make homogeneous pixel coordinates
+        Vec3d normalizedCoords = calibrationMatrix.inv() * pixelCoords;             // Calculate normalized pixel coordinates using inverted K matrix
         normalizedCoords = 1/normalizedCoords[2] * normalizedCoords;                // Ensure that the last value of the normalized coordinates is 1
 
         // Build matrix Q using the formula found in course

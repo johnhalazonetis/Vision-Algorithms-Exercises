@@ -30,10 +30,10 @@ int main(int argc, char** argv)
 
     Mat scores, keypoints, desc, previousDesc, previousKeypoints, image;
     int matches[1];
-    VideoCapture cap(datapath + "images/%06d.jpg");                                                             // Start video capture from images found in folder
-    while( cap.isOpened() )                                                                                                     // Loop while we are receiving images from folder
+    VideoCapture cap(datapath + "images/%06d.jpg");                                         // Start video capture from images found in folder
+    while( cap.isOpened() )                                                                 // Loop while we are receiving images from folder
     {
-        cap.read(image);                            // Read image
+        cap.read(image);                                                                    // Read image
 
         if (!image.data)                                                                    // If statement in case the file cannot be opened or does not exist
         {
@@ -56,7 +56,7 @@ int main(int argc, char** argv)
         previousKeypoints = keypoints;
         previousDesc = desc; */
         imshow("Image", image);
-        //imshow("Display Image", scores);                                                    // Show the input image
+        //imshow("Display Image", scores);                                                  // Show the input image
 
         waitKey(1);                                                                         // Wait for X ms
     }

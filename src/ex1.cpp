@@ -21,15 +21,15 @@ int main(int argc, char** argv)
 
     Matx33d calibrationMatrix = getCalibrationMatrix(datapath + "K.txt"); // Call function to read the calibration matrix file and make the calibration matrix
 
-    Matx34d transformationMatrix;                                // Define the transformation matrix for function 'makeTranslationMatrix'
+    Matx34d transformationMatrix;                                       // Define the transformation matrix for function 'makeTranslationMatrix'
     string posesFile = "poses.txt";                                     // Define the name of the poses text file
     ifstream poseFile;                                                  // Make an inward stream of data called 'poseFile'
     poseFile.open (datapath + posesFile);                               // Open the file in question (we sum up the datapath and the filename)
     
-    Vec3d inputWorldPoints;                                          // Define input points vector (in world coordinates)
-    Vec2i outputCameraPoints;                                        // Define output points vector (in camera frame)
+    Vec3d inputWorldPoints;                                             // Define input points vector (in world coordinates)
+    Vec2i outputCameraPoints;                                           // Define output points vector (in camera frame)
 
-    Vec3d cubeOrigin = (0.04, 0.04, 0);                   // Define where we want to place the cube on the chessboard
+    Vec3d cubeOrigin(0.04, 0.04, 0);                                    // Define where we want to place the cube on the chessboard
     double cubeLength = 0.08;                                           // Define length of cube side
 
     double distortionArray[1];
@@ -48,7 +48,7 @@ int main(int argc, char** argv)
         }
 
         Vec6d currentPose = getPose(poseFile);                           // Call function to get the current pose
-        transformationMatrix = makeTransforationMatrix(currentPose);        // Call function to read the poses and create a transformation matrix
+        transformationMatrix = makeTransforationMatrix(currentPose);     // Call function to read the poses and create a transformation matrix
         
         outputCameraPoints = projectPoints(calibrationMatrix, transformationMatrix, inputWorldPoints, distortionArray); // Call function to project points from world frame to camera frame
         

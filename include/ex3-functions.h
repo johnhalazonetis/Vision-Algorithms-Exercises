@@ -1,4 +1,4 @@
-MatrixXd describeKeypoints(Mat& img, int& keypoints, int r)
+void describeKeypoints(Mat& img, int& keypoints, int r, Vec3d *descriptors)
 {
     /*
     Returns a (2r+1)^2xN matrix of image patch vectors based on image
@@ -6,11 +6,7 @@ MatrixXd describeKeypoints(Mat& img, int& keypoints, int r)
     r is the patch "radius".
     */
 
-   MatrixXd descriptors;
-
    // TODO: start function
-
-   return descriptors;
 }
 
 Mat harrisScores(Mat& img, int& patchSize, double& kappa)
@@ -52,7 +48,7 @@ Mat harrisScores(Mat& img, int& patchSize, double& kappa)
     return scores;
 }
 
-VectorXd matchDescriptors(MatrixXd& query_descriptors, MatrixXd& databaseDescriptors, double lambda)
+void matchDescriptors(Vec3d *query_descriptors, Vec3d *databaseDescriptors, double lambda, double *matches)
 {
     /*
     Returns a 1xQ matrix where the i-th coefficient is the index of the
@@ -64,30 +60,24 @@ VectorXd matchDescriptors(MatrixXd& query_descriptors, MatrixXd& databaseDescrip
     be equal.
     */
 
-   VectorXd matches;
-
    // TODO: start function
 
-   return matches;
 }
 
-void plotMatches(VectorXd& matches, VectorXd queryKeypoints, VectorXd databaseKeypoints)
+void plotMatches(double *matches, double *queryKeypoints, double *databaseKeypoints)
 {
 
 }
 
-MatrixXd selectKeypoints(MatrixXd& scores, int numberOfKeypoints, int r)
+void selectKeypoints(Mat& scores, int numberOfKeypoints, int r, Vec2d *keyPoints)
 {
     /*
     Selects the num best scores as keypoints and performs non-maximum 
     supression of a (2r + 1)*(2r + 1) box around the current maximum.
     */
 
-    MatrixXd keypoints;
-
     // TODO: start function
 
-    return keypoints;
 }
 
 Mat shiTomasi(Mat& img, int& patchSize)

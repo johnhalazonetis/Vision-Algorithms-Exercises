@@ -43,7 +43,7 @@ Matx34d makeTransforationMatrix(Vec6d& currentPose)    // Function to get the po
     rotationMatrix = Matx33d::eye() + (sin(normOmega)) * kCrossProduct + (1 - cos(normOmega)) * (kCrossProduct * kCrossProduct);  // Apply Rodrigues formula to calculate the rotation matrix
 
     // Making the translation matrix out of the next three values from the poses.txt file
-    Vec3d translationMatrix = (currentPose[3], currentPose[4], currentPose[5]);             // Define the translation vector
+    Vec3d translationMatrix(currentPose[3], currentPose[4], currentPose[5]);             // Define the translation vector
     hconcat(rotationMatrix, translationMatrix, transformationMatrix);
     
     return transformationMatrix;
@@ -56,12 +56,13 @@ Vec2i projectPoints(Matx33d& calibrationMatrix, Matx34d& transformationMatrix, V
 
     Vec3d cameraPointsHomo = transformationMatrix * worldPointsHomo;                                                // Define the camera points vector in homogeneous coordinates
 
-    Vec2d normalizedCoordinates = (cameraPointsHomo[0], cameraPointsHomo[1])/cameraPointsHomo[2];                   // Define the normalized coordinates vector
+    Vec2d normalizedCoordinates(cameraPointsHomo[0], cameraPointsHomo[1]);                                          // Define the normalized coordinates vector
+    normalizedCoordinates = normalizedCoordinates/cameraPointsHomo[2];                   
     
     double radius = norm(normalizedCoordinates, NORM_INF, noArray());                                               // Compute the radial component of normalized coordinates
     double radialDistortionConstant = 1;                                                                            // Define radial distortion constant
 
-    for (int distRow = 0; distRow < sizeof(distortionArray); distRow++)                                              // For loop to go through all radial distortion constants
+    for (int distRow = 0; distRow < sizeof(distortionArray); distRow++)                                             // For loop to go through all radial distortion constants
     {
         radialDistortionConstant = radialDistortionConstant + distortionArray[distRow]*pow(radius, 2*(distRow+1));  // Computing radial distortion constant (to then multiply by normalized coordinates)
     }
@@ -75,28 +76,26 @@ Vec2i projectPoints(Matx33d& calibrationMatrix, Matx34d& transformationMatrix, V
     outputCameraPointsHomo = calibrationMatrix * normalizedCoordinatesHomo;                                         // Calculate output camera points in homogenous coordinates
     
     outputCameraPointsHomo = outputCameraPointsHomo/outputCameraPointsHomo[2];
-    Vec2i outputCameraPoints = (outputCameraPointsHomo[0], outputCameraPointsHomo[1]);                              // Input integer values to output camera coordinates vector
+    Vec2i outputCameraPoints((int)outputCameraPointsHomo[0], (int)outputCameraPointsHomo[1]);                       // Input integer values to output camera coordinates vector
     return outputCameraPoints;
 }
 
 void getLensDistortionValues(string filename, bool lensDistortion, int parameterNumber, double *distortionArray)     // Function to get lens distortion parameters
 {
-    double distortionArray[parameterNumber];                // Initialize the distortion array of values
-    
-    if (lensDistortion)                                         // If there is lens distortion
+    if (lensDistortion)                             // If there is lens distortion
     {
-        ifstream distortionFile;                                // Open an inward stream of data called distortionFile
-        distortionFile.open (filename);              // Open the file with the distortion data
+        ifstream distortionFile;                    // Open an inward stream of data called distortionFile
+        distortionFile.open (filename);             // Open the file with the distortion data
 
-        for (int c = 0; c < parameterNumber; c++)                // Loop over the columns
+        for (int c = 0; c < parameterNumber; c++)   // Loop over the columns
         {
-            distortionFile >> distortionArray[c];               // Input the values into the calibration matrix
+            distortionFile >> distortionArray[c];   // Input the values into the calibration matrix
         }
-        distortionFile.close();                                 // Close the file
+        distortionFile.close();                     // Close the file
     }
-    else                                                        // If there is no camera distortion
+    else                                            // If there is no camera distortion
     {
-        distortionArray[0] = 0;                 // Set the distortion array to zero, distortion array can still be propagate throughout the code, but code will still output an undistorted result
+        distortionArray[0] = 0;                     // Set the distortion array to zero, distortion array can still be propagate throughout the code, but code will still output an undistorted result
     }
 }
 
@@ -115,11 +114,11 @@ Vec6d getPose(ifstream& poseFile)   // Function to get the current pose of the c
 void drawCube(Mat& image, Vec3d& cubeOrigin, double& length, Matx33d& calibrationMatrix, Matx34d& transformationMatrix, double *distortionArray)   // Function to draw a cube on top of the current frame
 {
     // Start by computing the position of the other 7 points in the world frame (keeping all of the same edge lengths)
-    Vec3d xTranslation = (1, 0, 0);                                                                                 // Define a translation on the x axis
-    Vec3d yTranslation = (0, 1, 0);                                                                                 // Define a translation on the y axis
-    Vec3d zTranslation = (0, 0, 1);                                                                                 // Define a translation on the z axis
+    Vec3d xTranslation(1, 0, 0);                                                                                    // Define a translation on the x axis
+    Vec3d yTranslation(0, 1, 0);                                                                                    // Define a translation on the y axis
+    Vec3d zTranslation(0, 0, 1);                                                                                    // Define a translation on the z axis
     
-    Vec3d cubeWorldCorners[8];                                                                                                // Define the world coordinates of the corners of the cube
+    Vec3d cubeWorldCorners[8];                                                                                      // Define the world coordinates of the corners of the cube
 
     // Compute the world coordinates of the cube by using simple x, y and z translations in world frame
     cubeWorldCorners[0] = cubeOrigin;
@@ -131,17 +130,18 @@ void drawCube(Mat& image, Vec3d& cubeOrigin, double& length, Matx33d& calibratio
     cubeWorldCorners[6] = cubeOrigin + length * xTranslation + length * yTranslation - length * zTranslation;
     cubeWorldCorners[7] = cubeOrigin + length * yTranslation - length * zTranslation;
 
-    Vec2i outputCameraCorners[8];                                                                                             // Define output variable
-    Vec3d tempInputWorldCoords;                                                                                                  // Define temporary input variable
+    Vec2i outputCameraCorners[8];                                                                                                   // Define output variable
+    Vec3d tempInputWorldCoords;                                                                                                     // Define temporary input variable
     Vec2i tempOutputCameraCorners;
 
     for (int cornerNumber = 0; cornerNumber < 8; cornerNumber++)                                                                    // For loop to go over all of the corner
     {
-        tempInputWorldCoords = cubeWorldCorners[cornerNumber];                                                                  // Put the current input world coordinates in a temporary input variable
+        tempInputWorldCoords = cubeWorldCorners[cornerNumber];                                                                      // Put the current input world coordinates in a temporary input variable
         tempOutputCameraCorners = projectPoints(calibrationMatrix, transformationMatrix, tempInputWorldCoords, distortionArray);    // Output the camera coordinates in temporary variable
+        //cout << tempOutputCameraCorners[cornerNumber] << endl;
         outputCameraCorners[cornerNumber] = tempOutputCameraCorners;
     }
-    
+
     // Draw lines of the cube on the image
     line(image, Point(outputCameraCorners[0]), Point(outputCameraCorners[1]), Scalar(0, 0, 255), 2, LINE_8);
     line(image, Point(outputCameraCorners[1]), Point(outputCameraCorners[2]), Scalar(0, 0, 255), 2, LINE_8);
