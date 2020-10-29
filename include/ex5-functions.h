@@ -49,6 +49,23 @@ Mat getDisparity(Mat *stereoImage, int& patchRadius, int& minDisparity, int& max
 
     Mat disparityMap;
 
+    double patchSize = pow(patchRadius*2+1, 2);
+
+    // Brute force method of finding the disparity
+    for (int imageHeight = 0; imageHeight < stereoImage[0].rows - patchSize; imageHeight++)
+    {
+        for (int leftImageWidth = 0 ; leftImageWidth < stereoImage[0].cols - patchSize; leftImageWidth++)
+        {
+            Mat leftPatch = stereoImage[0](Range(imageHeight, imageHeight+patchSize), Range(leftImageWidth, leftImageWidth+patchSize));
+            
+            for (int rightImageWidth = 0 ; rightImageWidth < stereoImage[0].cols - patchSize; rightImageWidth++)
+            {
+                Mat rightPatch = stereoImage[1](Range(imageHeight, imageHeight+patchSize), Range(rightImageWidth, rightImageWidth+patchSize));
+                //Mat disparityCandidates = 
+            }
+        }
+    }
+
     return disparityMap;
 }
 

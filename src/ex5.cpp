@@ -39,6 +39,8 @@ int main(int argc, char** argv)
     {
         readStereoImage(leftCap, rightCap, 0.5, stereoImage);    // Read the right and left image
 
+        Mat displarityMap = getDisparity(stereoImage, patchRadius, minDisparity, maxDisparity);
+
         showStereoImage(stereoImage, "STEREO");             // Show the image output
 
         waitKey(25);                                        // Wait for X ms
