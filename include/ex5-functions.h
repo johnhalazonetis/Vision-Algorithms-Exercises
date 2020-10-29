@@ -1,9 +1,12 @@
-void readStereoImage(VideoCapture& leftCap, VideoCapture& rightCap, Mat stereoImage[2]) // Function to read two input images and assemble then into array
+void readStereoImage(VideoCapture& leftCap, VideoCapture& rightCap, double rescaleFactor, Mat stereoImage[2]) // Function to read two input images and assemble then into array
 {
     Mat leftImage, rightImage;                          // Define left and right image matrices
 
     leftCap.read(leftImage);                            // Read left image
     rightCap.read(rightImage);                          // Read left image
+
+    resize(leftImage, leftImage, Size(), rescaleFactor, rescaleFactor);                   // Resize image to the specified rescale factor
+    resize(rightImage, rightImage, Size(), rescaleFactor, rescaleFactor);                   // Resize image to the specified rescale factor
 
     if (!leftImage.data)                                // If statement in case the file cannot be opened or does not exist
     {
