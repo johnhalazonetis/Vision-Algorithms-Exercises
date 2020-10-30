@@ -47,22 +47,28 @@ Mat getDisparity(Mat *stereoImage, int& patchRadius, int& minDisparity, int& max
     // estimates rejected in Part 2. patch_radius specifies the SSD patch and
     // each valid d should satisfy min_disp <= d <= max_disp.
 
-    Mat disparityMap;
+    int imageWidth = stereoImage[0].cols;
+    int imageHeight = stereoImage[0].rows;
+
+    Mat disparityMap(Size(imageWidth, imageHeight), CV_64F);
 
     double patchSize = pow(patchRadius*2+1, 2);
 
-    // Brute force method of finding the disparity
-    for (int imageHeight = 0; imageHeight < stereoImage[0].rows - patchSize; imageHeight++)
+    // Use the minDisparity and maxDisparity values to shorten the loop (there is no point looking outside of the values that will be rejected anyway)
+    for (int leftImageHeight = 0; leftImageHeight < imageHeight - patchSize; leftImageHeight++)
     {
-        for (int leftImageWidth = 0 ; leftImageWidth < stereoImage[0].cols - patchSize; leftImageWidth++)
+        for (int leftImageWidth = 0 ; leftImageWidth < imageWidth - patchSize - maxDisparity; leftImageWidth++)
         {
-            Mat leftPatch = stereoImage[0](Range(imageHeight, imageHeight+patchSize), Range(leftImageWidth, leftImageWidth+patchSize));
+            Mat leftPatch(stereoImage[0], Rect(leftImageWidth, leftImageHeight, patchSize, patchSize));
+            double dist[maxDisparity - minDisparity];
             
-            for (int rightImageWidth = 0 ; rightImageWidth < stereoImage[0].cols - patchSize; rightImageWidth++)
+            for (int distance = 0; distance < maxDisparity - minDisparity; distance++)
             {
-                Mat rightPatch = stereoImage[1](Range(imageHeight, imageHeight+patchSize), Range(rightImageWidth, rightImageWidth+patchSize));
-                //Mat disparityCandidates = 
-            }
+                Mat rightPatch(stereoImage[1], Rect(leftImageWidth + minDisparity + distance, leftImageHeight, patchSize, patchSize));
+                dist[distance] = norm(leftPatch, rightPatch, NORM_L2SQR);
+                cout << "leftImageWidth: " << leftImageWidth << "   Disparity: " << distance+5 << "    -> Distance: " << dist[distance] << endl;
+            }            
+            waitKey(0);
         }
     }
 
