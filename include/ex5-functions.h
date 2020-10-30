@@ -5,8 +5,8 @@ void readStereoImage(VideoCapture& leftCap, VideoCapture& rightCap, double resca
     leftCap.read(leftImage);                            // Read left image
     rightCap.read(rightImage);                          // Read left image
 
-    resize(leftImage, leftImage, Size(), rescaleFactor, rescaleFactor);                   // Resize image to the specified rescale factor
-    resize(rightImage, rightImage, Size(), rescaleFactor, rescaleFactor);                   // Resize image to the specified rescale factor
+    resize(leftImage, leftImage, Size(), rescaleFactor, rescaleFactor, INTER_LINEAR_EXACT);                   // Resize image to the specified rescale factor
+    resize(rightImage, rightImage, Size(), rescaleFactor, rescaleFactor, INTER_LINEAR_EXACT);                   // Resize image to the specified rescale factor
 
     if (!leftImage.data)                                // If statement in case the file cannot be opened or does not exist
     {
@@ -39,7 +39,7 @@ void showStereoImage(Mat *stereoImage, string option)   // Function to show the 
     }
 }
 
-Mat getDisparity(Mat *stereoImage, int& patchRadius, int& minDisparity, int& maxDisparity)
+Mat getDisparity(Mat *stereoImage, int patchRadius, int minDisparity, int maxDisparity)
 {
     // left_img and right_img are both H x W and you should return a H x W
     // matrix containing the disparity d for each pixel of left_img. Set
@@ -50,24 +50,38 @@ Mat getDisparity(Mat *stereoImage, int& patchRadius, int& minDisparity, int& max
     int imageWidth = stereoImage[0].cols;
     int imageHeight = stereoImage[0].rows;
 
-    Mat disparityMap(Size(imageWidth, imageHeight), CV_64F);
+    Mat disparityMap(Size(imageWidth, imageHeight), CV_16S);
 
-    double patchSize = pow(patchRadius*2+1, 2);
+    int patchSize = pow(patchRadius*2+1, 2);
+    int halfPatchSize = (patchSize -1)/2;
+    int disparityRange = maxDisparity - minDisparity;
 
     // Use the minDisparity and maxDisparity values to shorten the loop (there is no point looking outside of the values that will be rejected anyway)
     for (int leftImageHeight = 0; leftImageHeight < imageHeight - patchSize; leftImageHeight++)
     {
-        for (int leftImageWidth = 0 ; leftImageWidth < imageWidth - patchSize - maxDisparity; leftImageWidth++)
+        for (int leftImageWidth = 2*patchSize; leftImageWidth < imageWidth - patchSize - maxDisparity; leftImageWidth++)
         {
             Mat leftPatch(stereoImage[0], Rect(leftImageWidth, leftImageHeight, patchSize, patchSize));
-            double dist[maxDisparity - minDisparity];
-            
-            for (int distance = 0; distance < maxDisparity - minDisparity; distance++)
+            double differences[45];
+
+            for (int distance = 0; distance < disparityRange; distance++)
             {
                 Mat rightPatch(stereoImage[1], Rect(leftImageWidth + minDisparity + distance, leftImageHeight, patchSize, patchSize));
-                dist[distance] = norm(leftPatch, rightPatch, NORM_L2SQR);
-                cout << "leftImageWidth: " << leftImageWidth << "   Disparity: " << distance+5 << "    -> Distance: " << dist[distance] << endl;
-            }            
+                differences[distance] = norm(leftPatch, rightPatch, NORM_L2);
+            }
+            
+            int disparity = 0; double bestDiff = differences[0];
+            cout << bestDiff << endl;
+            for (int dispLoop = 1; dispLoop < disparityRange; dispLoop++)
+            {
+                cout << differences[dispLoop] << endl;
+                if (differences[dispLoop] < bestDiff)
+                {
+                    bestDiff = differences[dispLoop];
+                    disparity = dispLoop;
+                    cout << "found new disp" << endl;
+                }
+            }
             waitKey(0);
         }
     }
