@@ -37,7 +37,7 @@ int main(int argc, char** argv)
     VideoCapture leftCap(datapath + "left/%06d.png"), rightCap(datapath + "right/%06d.png");    // Start video capture from images found in folder
     while( leftCap.isOpened() )                             // Loop while we are receiving images from folder
     {
-        readStereoImage(leftCap, rightCap, 0.5, stereoImage);    // Read the right and left image
+        readStereoImage(leftCap, rightCap, 1, stereoImage);    // Read the right and left image
         
         Mat disparityMap = getDisparity(stereoImage, patchRadius, minDisparity, maxDisparity);
         //imshow("Disparity Map", disparityMap);

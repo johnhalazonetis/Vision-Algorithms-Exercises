@@ -51,10 +51,11 @@ Mat getDisparity(Mat *stereoImage, int patchRadius, int minDisparity, int maxDis
     int imageHeight = stereoImage[0].rows;
 
     Mat disparityMap(Size(imageWidth, imageHeight), CV_16S);
-
-    int patchSize = pow(patchRadius*2+1, 2);
-    int halfPatchSize = (patchSize -1)/2;
     int disparityRange = maxDisparity - minDisparity;
+
+    /*int patchSize = pow(patchRadius*2+1, 2);
+    int halfPatchSize = (patchSize -1)/2;
+    
 
     // Use the minDisparity and maxDisparity values to shorten the loop (there is no point looking outside of the values that will be rejected anyway)
     for (int leftImageHeight = 0; leftImageHeight < imageHeight - patchSize; leftImageHeight++)
@@ -84,7 +85,22 @@ Mat getDisparity(Mat *stereoImage, int patchRadius, int minDisparity, int maxDis
             }
             waitKey(0);
         }
+    }*/
+
+    Mat overlapDifference[disparityRange];
+
+    for (int overlapDiff = 0; overlapDiff < disparityRange; overlapDiff++)
+    {
+        Mat leftPatch = stereoImage[0].colRange(overlapDiff + minDisparity, stereoImage[0].cols);
+        Mat rightPatch = stereoImage[1].colRange(0, stereoImage[1].cols - overlapDiff - minDisparity);
+        overlapDifference[overlapDiff] = abs(leftPatch - rightPatch);
     }
+    
+    imshow("First difference", overlapDifference[0]);
+    imshow("Middle difference", overlapDifference[(disparityRange-1)/2]);
+    imshow("Last difference", overlapDifference[disparityRange-1]);
+    waitKey(0);
+    
 
     return disparityMap;
 }
