@@ -39,7 +39,13 @@ int main(int argc, char** argv)
     {
         readStereoImage(leftCap, rightCap, 1, stereoImage);    // Read the right and left image
         
-        Mat disparityMap = getDisparity(stereoImage, patchRadius, minDisparity, maxDisparity);
+        Mat leftPatch(stereoImage[0], Rect(0, 0, 20, 20));
+        Mat rightPatch(stereoImage[1], Rect(0, 0, 20, 20));
+
+        double similarityManual = computeSimilarity("NCC", leftPatch, rightPatch);
+        cout << similarityManual << endl;
+
+        //Mat disparityMap = getDisparity(stereoImage, patchRadius, minDisparity, maxDisparity);
         //imshow("Disparity Map", disparityMap);
 
         //showStereoImage(stereoImage, "STEREO");             // Show the image output

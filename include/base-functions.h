@@ -111,6 +111,59 @@ Vec6d getPose(ifstream& poseFile)   // Function to get the current pose of the c
     return currentPose;
 }
 
+double computeSimilarity(string type, Mat& kernel, Mat& sample)  // Function to compute the zero mean 
+{
+    if (kernel.size() == sample.size())
+    {
+        double similarity;
+        if (type == "NCC")
+        {
+            Mat nominatorMat = kernel.mul(sample);
+            similarity = sum(nominatorMat)[0]/(norm(kernel, NORM_L2) * norm(sample, NORM_L2));
+        }
+        if (type == "SSD")
+        {
+            similarity = norm(kernel, sample, NORM_L2SQR);
+        }
+        if (type == "SAD")
+        {
+            similarity = norm(kernel, sample, NORM_L1);
+        }
+        if (type == "ZNCC")
+        {
+            Scalar kernelMean = mean(kernel);
+            Scalar sampleMean = mean(sample);
+            Mat newKernel; subtract(kernel, kernelMean, newKernel);
+            Mat newSample; subtract(sample, sampleMean, newSample);
+            Mat nominatorMat = newKernel.mul(newSample);
+            similarity = sum(nominatorMat)[0]/(norm(newKernel, NORM_L2) * norm(newSample, NORM_L2));
+        }
+        if (type == "ZSSD")
+        {
+            Scalar kernelMean = mean(kernel);
+            Scalar sampleMean = mean(sample);
+            Mat newKernel; subtract(kernel, kernelMean, newKernel);
+            Mat newSample; subtract(sample, sampleMean, newSample);
+            similarity = norm(newKernel, newSample, NORM_L2SQR);
+        }
+        if (type == "ZSAD")
+        {
+            Scalar kernelMean = mean(kernel);
+            Scalar sampleMean = mean(sample);
+            Mat newKernel; subtract(kernel, kernelMean, newKernel);
+            Mat newSample; subtract(sample, sampleMean, newSample);
+            similarity = norm(newKernel, newSample, NORM_L1);
+        }
+        
+        return similarity;
+    }
+    else 
+    {
+        cout << "Input kernel and sample size do not match" << endl;
+        return EXIT_FAILURE;
+    }    
+}
+
 void drawCube(Mat& image, Vec3d& cubeOrigin, double& length, Matx33d& calibrationMatrix, Matx34d& transformationMatrix, double *distortionArray)   // Function to draw a cube on top of the current frame
 {
     // Start by computing the position of the other 7 points in the world frame (keeping all of the same edge lengths)
