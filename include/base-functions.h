@@ -113,55 +113,60 @@ Vec6d getPose(ifstream& poseFile)   // Function to get the current pose of the c
 
 double computeSimilarity(string type, Mat& kernel, Mat& sample)  // Function to compute the zero mean 
 {
-    if (kernel.size() == sample.size())
+    if (kernel.size() != sample.size())
     {
-        double similarity;
-        if (type == "NCC")
+        cout << "computeSimilarity: Input kernel and sample size do not match" << endl;
+        return EXIT_FAILURE;
+    } 
+    
+    double similarity;
+    if (type == "NCC")
+    {
+        Mat nominatorMat = kernel.mul(sample);
+        similarity = sum(nominatorMat)[0]/(norm(kernel, NORM_L2) * norm(sample, NORM_L2));
+    }
+    if (type == "SSD")
+    {
+        similarity = norm(kernel, sample, NORM_L2SQR);
+    }
+    if (type == "SAD")
+    {
+        similarity = norm(kernel, sample, NORM_L1);
+    }
+    if (type == "ZNCC")
+    {
+        Scalar kernelMean = mean(kernel);
+        Scalar sampleMean = mean(sample);
+        Mat newKernel; subtract(kernel, kernelMean, newKernel);
+        Mat newSample; subtract(sample, sampleMean, newSample);
+        Mat nominatorMat = newKernel.mul(newSample);
+        if (sum(nominatorMat)[0] == 0)
         {
-            Mat nominatorMat = kernel.mul(sample);
-            similarity = sum(nominatorMat)[0]/(norm(kernel, NORM_L2) * norm(sample, NORM_L2));
+            similarity = 0;
         }
-        if (type == "SSD")
+        else
         {
-            similarity = norm(kernel, sample, NORM_L2SQR);
-        }
-        if (type == "SAD")
-        {
-            similarity = norm(kernel, sample, NORM_L1);
-        }
-        if (type == "ZNCC")
-        {
-            Scalar kernelMean = mean(kernel);
-            Scalar sampleMean = mean(sample);
-            Mat newKernel; subtract(kernel, kernelMean, newKernel);
-            Mat newSample; subtract(sample, sampleMean, newSample);
-            Mat nominatorMat = newKernel.mul(newSample);
             similarity = sum(nominatorMat)[0]/(norm(newKernel, NORM_L2) * norm(newSample, NORM_L2));
         }
-        if (type == "ZSSD")
-        {
-            Scalar kernelMean = mean(kernel);
-            Scalar sampleMean = mean(sample);
-            Mat newKernel; subtract(kernel, kernelMean, newKernel);
-            Mat newSample; subtract(sample, sampleMean, newSample);
-            similarity = norm(newKernel, newSample, NORM_L2SQR);
-        }
-        if (type == "ZSAD")
-        {
-            Scalar kernelMean = mean(kernel);
-            Scalar sampleMean = mean(sample);
-            Mat newKernel; subtract(kernel, kernelMean, newKernel);
-            Mat newSample; subtract(sample, sampleMean, newSample);
-            similarity = norm(newKernel, newSample, NORM_L1);
-        }
-        
-        return similarity;
     }
-    else 
+    if (type == "ZSSD")
     {
-        cout << "Input kernel and sample size do not match" << endl;
-        return EXIT_FAILURE;
-    }    
+        Scalar kernelMean = mean(kernel);
+        Scalar sampleMean = mean(sample);
+        Mat newKernel; subtract(kernel, kernelMean, newKernel);
+        Mat newSample; subtract(sample, sampleMean, newSample);
+        similarity = norm(newKernel, newSample, NORM_L2SQR);
+    }
+    if (type == "ZSAD")
+    {
+        Scalar kernelMean = mean(kernel);
+        Scalar sampleMean = mean(sample);
+        Mat newKernel; subtract(kernel, kernelMean, newKernel);
+        Mat newSample; subtract(sample, sampleMean, newSample);
+        similarity = norm(newKernel, newSample, NORM_L1);
+    }
+    
+    return similarity;
 }
 
 void drawCube(Mat& image, Vec3d& cubeOrigin, double& length, Matx33d& calibrationMatrix, Matx34d& transformationMatrix, double *distortionArray)   // Function to draw a cube on top of the current frame

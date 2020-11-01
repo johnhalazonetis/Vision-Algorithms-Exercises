@@ -42,11 +42,8 @@ int main(int argc, char** argv)
         Mat leftPatch(stereoImage[0], Rect(0, 0, 20, 20));
         Mat rightPatch(stereoImage[1], Rect(0, 0, 20, 20));
 
-        double similarityManual = computeSimilarity("NCC", leftPatch, rightPatch);
-        cout << similarityManual << endl;
-
-        //Mat disparityMap = getDisparity(stereoImage, patchRadius, minDisparity, maxDisparity);
-        //imshow("Disparity Map", disparityMap);
+        Mat disparityMap = getDisparityMap(stereoImage, patchRadius, minDisparity, maxDisparity, "ZSAD");
+        imshow("Disparity Map", disparityMap);
 
         //showStereoImage(stereoImage, "STEREO");             // Show the image output
 
