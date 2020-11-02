@@ -51,9 +51,9 @@ int getDisparityValue(Mat& kernel, Mat& searchPatch, string normType)
     int disparityCounter = 0;
     for (int searchCol = 0; searchCol < searchPatch.cols - kernel.cols; searchCol++)
     {
-        Mat samplePatch(searchPatch, Rect(0, searchCol, kernel.rows, kernel.cols));
+        Mat samplePatch(searchPatch, Rect(searchCol, 0, kernel.rows, kernel.cols));
         double similarityMeasure = computeSimilarity(normType, kernel, samplePatch);
-        cout << "Iteration: " << searchCol << ", similarityMeasure = " << similarityMeasure << endl;
+        //cout << "Iteration: " << searchCol << ", similarityMeasure = " << similarityMeasure << endl;
         
         if (similarityMeasure == 1 && (normType == "NCC" || normType == "ZNCC"))
         {
@@ -84,16 +84,16 @@ Mat getDisparityMap(Mat *stereoImage, int patchRadius, int minDisparity, int max
     int halfPatchSize = (patchSize -1)/2;
 
     // Loop through the pixels and possible patches and call getDisparityValue to compute disparity
-    for (int currentRow = 0; currentRow < imageHeight; currentRow++)
+    for (int currentRow = 0; currentRow < imageHeight - patchSize; currentRow++)
     {
         for (int currentCol = 0; currentCol < imageWidth - patchSize; currentCol++)
         {
             Mat kernel(stereoImage[0], Rect(currentCol, currentRow, patchSize, patchSize));
             int searchPatchWidth = min(maxDisparity, imageWidth - (currentCol + patchSize));
             Mat searchPatch(stereoImage[1], Rect(currentCol + minDisparity, currentRow, patchSize + searchPatchWidth - minDisparity, patchSize));
-            imshow("Kernel", kernel); imshow("searchPatch", searchPatch);
-            waitKey(0);
-            cout << "Total size: " << searchPatch.size() << "Number of columns: " << searchPatch.cols << endl;
+            //imshow("Kernel", kernel); imshow("searchPatch", searchPatch);
+            //waitKey(0);
+            //cout << "Total size: " << searchPatch.size() << "Number of columns: " << searchPatch.cols << endl;
             int disparity = getDisparityValue(kernel, searchPatch, normType);
             disparityMap.at<int>(currentRow + halfPatchSize, currentCol + halfPatchSize) = disparity;
         }
@@ -102,7 +102,7 @@ Mat getDisparityMap(Mat *stereoImage, int patchRadius, int minDisparity, int max
     return disparityMap;
 }
 
-Mat getDisparityAdvanced(Mat *stereoImage, int patchRadius, int minDisparity, int maxDisparity)
+void getDisparityAdvanced(Mat *stereoImage, int minDisparity, int maxDisparity)
 {
     // left_img and right_img are both H x W and you should return a H x W
     // matrix containing the disparity d for each pixel of left_img. Set
@@ -113,42 +113,7 @@ Mat getDisparityAdvanced(Mat *stereoImage, int patchRadius, int minDisparity, in
     int imageWidth = stereoImage[0].cols;
     int imageHeight = stereoImage[0].rows;
 
-    Mat disparityMap(Size(imageWidth, imageHeight), CV_16S);
     int disparityRange = maxDisparity - minDisparity;
-
-    /*int patchSize = pow(patchRadius*2+1, 2);
-    int halfPatchSize = (patchSize -1)/2;
-    
-
-    // Use the minDisparity and maxDisparity values to shorten the loop (there is no point looking outside of the values that will be rejected anyway)
-    for (int leftImageHeight = 0; leftImageHeight < imageHeight - patchSize; leftImageHeight++)
-    {
-        for (int leftImageWidth = 2*patchSize; leftImageWidth < imageWidth - patchSize - maxDisparity; leftImageWidth++)
-        {
-            Mat leftPatch(stereoImage[0], Rect(leftImageWidth, leftImageHeight, patchSize, patchSize));
-            double differences[45];
-
-            for (int distance = 0; distance < disparityRange; distance++)
-            {
-                Mat rightPatch(stereoImage[1], Rect(leftImageWidth + minDisparity + distance, leftImageHeight, patchSize, patchSize));
-                differences[distance] = norm(leftPatch, rightPatch, NORM_L2);
-            }
-            
-            int disparity = 0; double bestDiff = differences[0];
-            cout << bestDiff << endl;
-            for (int dispLoop = 1; dispLoop < disparityRange; dispLoop++)
-            {
-                cout << differences[dispLoop] << endl;
-                if (differences[dispLoop] < bestDiff)
-                {
-                    bestDiff = differences[dispLoop];
-                    disparity = dispLoop;
-                    cout << "found new disp" << endl;
-                }
-            }
-            waitKey(0);
-        }
-    }*/
 
     Mat overlapDifference[disparityRange];
 
@@ -156,16 +121,12 @@ Mat getDisparityAdvanced(Mat *stereoImage, int patchRadius, int minDisparity, in
     {
         Mat leftPatch = stereoImage[0].colRange(overlapDiff + minDisparity, stereoImage[0].cols);
         Mat rightPatch = stereoImage[1].colRange(0, stereoImage[1].cols - overlapDiff - minDisparity);
-        overlapDifference[overlapDiff] = abs(leftPatch - rightPatch);
+        overlapDifference[overlapDiff] = abs(rightPatch - leftPatch);
     }
     
     imshow("First difference", overlapDifference[0]);
     imshow("Middle difference", overlapDifference[(disparityRange-1)/2]);
     imshow("Last difference", overlapDifference[disparityRange-1]);
-    waitKey(0);
-    
-
-    return disparityMap;
 }
 
 void disparityToPointCloud(Mat& disparityMap, Matx33d calibrationMatrix, double& baseline, Mat *stereoImage, Vec3d points[], double intensities)

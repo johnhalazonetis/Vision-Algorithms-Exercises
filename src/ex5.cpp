@@ -38,16 +38,14 @@ int main(int argc, char** argv)
     while( leftCap.isOpened() )                             // Loop while we are receiving images from folder
     {
         readStereoImage(leftCap, rightCap, 1, stereoImage);    // Read the right and left image
-        
-        Mat leftPatch(stereoImage[0], Rect(0, 0, 20, 20));
-        Mat rightPatch(stereoImage[1], Rect(0, 0, 20, 20));
 
-        Mat disparityMap = getDisparityMap(stereoImage, patchRadius, minDisparity, maxDisparity, "ZSAD");
-        imshow("Disparity Map", disparityMap);
+        getDisparityAdvanced(stereoImage, minDisparity, maxDisparity);
+        //Mat disparityMap = getDisparityMap(stereoImage, patchRadius, minDisparity, maxDisparity, "ZSSD");
+        //imshow("Left Image", stereoImage[0]);
 
-        //showStereoImage(stereoImage, "STEREO");             // Show the image output
+        showStereoImage(stereoImage, "STEREO");             // Show the image output
 
-        waitKey(25);                                        // Wait for X ms
+        waitKey(0);                                        // Wait for X ms
     }
 
     destroyAllWindows();                                    // Close all windows
