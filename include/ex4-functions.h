@@ -1,3 +1,10 @@
+class stereoImagePair {
+  public:
+    Mat leftImage;   
+    Mat rightImage;
+    //TODO: Start working with classes to simplify data passing and general organization of code
+};
+
 Mat importImageGreyRescale(string datapath, double rescaleFactor)                           // Function to read the input image file
 {
     Mat inputImage = imread(datapath, IMREAD_GRAYSCALE);                                    // Try to read the input image file
@@ -41,6 +48,48 @@ Mat derotatePatch(Mat& image, Vec2d& location, int& patchSize, double orientatio
     }
 
     return derotatedPatch;
+}
+
+Mat rotateImage(Mat inputImage, int angle)
+{
+    // get rotation matrix for rotating the image around its center in pixel coordinates
+    Point2f center((inputImage.cols-1)/2.0, (inputImage.rows-1)/2.0);
+    Mat rotationMatrix = getRotationMatrix2D(center, angle, 1.0);
+    
+    // Determine bounding rectangle, center not relevant
+    Rect2f bbox = RotatedRect(Point2f(), inputImage.size(), angle).boundingRect2f();
+    
+    // Adjust transformation matrix
+    rotationMatrix.at<double>(0,2) += bbox.width/2.0 - inputImage.cols/2.0;
+    rotationMatrix.at<double>(1,2) += bbox.height/2.0 - inputImage.rows/2.0;
+
+    Mat rotatedImage;
+    warpAffine(inputImage, rotatedImage, rotationMatrix, bbox.size());
+
+    return rotatedImage;
+}
+
+void extractKeypoints(vector<vector<Mat>> &dogImagePyramid, double constrastThreshold, int numberOfOctaves, vector<Mat> &kptLocations)
+{
+    for (int octaveIdx = 0; octaveIdx < numberOfOctaves-1; octaveIdx++)
+    {
+        vector<Mat> currentDog = dogImagePyramid[octaveIdx];
+
+        // DoG_max = imdilate(DoG, true(3, 3, 3));
+       
+        // Equivalent to this is:
+        // DoG_max = movmax(movmax(movmax(DoG, 3, 1), 3, 2), 3, 3);
+
+        // is_kpt = (DoG == DoG_max) & (DoG >= contrast_threshold);
+
+        // We do not consider the extrema at the boundaries of the DoGs.
+
+        // is_kpt(:, :, 1) = false;
+        // is_kpt(:, :, end) = false;
+        // [x, y, s] = ind2sub(size(is_kpt), find(is_kpt));
+        // kpt_locations{oct_idx} = horzcat(x, y, s);
+    }
+    
 }
 
 /*VectorXd weightedHistC(VectorXd& vals, VectorXd& weights, VectorXd& edges)

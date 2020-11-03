@@ -102,6 +102,24 @@ Mat getDisparityMap(Mat *stereoImage, int patchRadius, int minDisparity, int max
     return disparityMap;
 }
 
+void computeNormsAtEachImage(Mat *differenceVector, Mat *normVector, int patchRadius, string normType)
+{
+    int arraySize = sizeof(differenceVector) / sizeof(differenceVector[0]);
+    int imageWidth = differenceVector[arraySize].cols;
+    int imageHeight = differenceVector[arraySize-1].rows;
+
+    int patchSize = pow(patchRadius*2+1, 2);
+    int halfPatchSize = (patchSize -1)/2;
+
+    for (int currentRow = 0; currentRow < imageHeight - patchSize; currentRow++)
+    {
+        for (int currentCol = 0; currentCol < imageWidth - patchSize; currentCol++)
+        {
+            
+        }
+    }
+}
+
 void getDisparityAdvanced(Mat *stereoImage, int minDisparity, int maxDisparity)
 {
     // left_img and right_img are both H x W and you should return a H x W
@@ -124,9 +142,7 @@ void getDisparityAdvanced(Mat *stereoImage, int minDisparity, int maxDisparity)
         overlapDifference[overlapDiff] = abs(rightPatch - leftPatch);
     }
     
-    imshow("First difference", overlapDifference[0]);
-    imshow("Middle difference", overlapDifference[(disparityRange-1)/2]);
-    imshow("Last difference", overlapDifference[disparityRange-1]);
+    
 }
 
 void disparityToPointCloud(Mat& disparityMap, Matx33d calibrationMatrix, double& baseline, Mat *stereoImage, Vec3d points[], double intensities)
