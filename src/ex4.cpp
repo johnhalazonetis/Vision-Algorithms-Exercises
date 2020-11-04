@@ -31,18 +31,18 @@ int main(int argc, char** argv)
     double rescaleFactor = 0.2;         // Rescaling of the original image for speed
 
     // Read both images in directory
-    Mat inputImages[2];
+    vector<Mat> inputImages(2);
     inputImages[0] = importImageGreyRescale(datapath + "img_1.jpg", rescaleFactor);
     inputImages[1] = importImageGreyRescale(datapath + "img_2.jpg", rescaleFactor);
 
     // To test rotation invariance of SIFT
     if (rotationImage2 != 0)
     {
-        Mat inputImages[1] = rotateImage(inputImages[1], rotationImage2);   // Rotate the input image by a predefined angle
+        //Mat inputImages[1] = rotateImage(inputImages[1], rotationImage2);   // Rotate the input image by a predefined angle
     }
 
-    vector<vector<vector<Mat>>> blurredImagePyramid(2, vector<vector<Mat>> (numberOfOctaves, vector<Mat> (numberOfScales+3) ) );          // Create 2D array for the blurred images pyramid
-    vector<vector<vector<Mat>>> dogImagePyramid(2, vector<vector<Mat>> (numberOfOctaves, vector<Mat> (numberOfScales+2) ) );              // Create 2D array for the DoG image pyramid
+    vector<vector<vector<Mat>>> blurredImagePyramid( 2, vector<vector<Mat>> (numberOfOctaves, vector<Mat> (numberOfScales+3) ) );          // Create 2D array for the blurred images pyramid
+    vector<vector<vector<Mat>>> dogImagePyramid( 2, vector<vector<Mat>> (numberOfOctaves, vector<Mat> (numberOfScales+2) ) );              // Create 2D array for the DoG image pyramid
 
     vector<Mat> kptLocation(2);
     vector<Mat> descriptors(2);
@@ -50,26 +50,12 @@ int main(int argc, char** argv)
     // Loop through the two images
     for (int imageN = 0; imageN < 2; imageN++)                                                      // Loop through the two images
     {
-        // Compute the image pyramids TODO: Move this chunk to a function in ex4-functions.h
-        for (int octaveN = 0; octaveN < numberOfOctaves-1; octaveN++)                               // Loop over the number of ocatves for each image
-        {
-            for (int scaleN = -1; scaleN < numberOfScales+2; scaleN++)                              // Loop over the number of scales for each image
-            {
-                Mat tempImage;                                                                      // Define a temporary image
-                resize(inputImages[imageN], tempImage, Size(), pow(2, -octaveN), pow(2, -octaveN)); // Resize the image with the given rescale factor
-                double sigma = sigma0 * pow(2, (double)scaleN/(double)numberOfScales);              // Compute sigma for smoothing
-                GaussianBlur(tempImage, tempImage, Size(0, 0), sigma, sigma);                       // Compute the Gaussian blur
-                blurredImagePyramid[imageN][octaveN][scaleN+1] = tempImage;                         // Put the blurred image into the image pyramid
-
-                if (scaleN != -1)                                                                   // Wait until the first iteration is over
-                {
-                    dogImagePyramid[imageN][octaveN][scaleN] = blurredImagePyramid[imageN][octaveN][scaleN] - blurredImagePyramid[imageN][octaveN][scaleN+1];   // Compute the DoG
-                }
-            }
-        }
+        // Compute the image pyramids
+        makeSIFTPyramids(inputImages[imageN], numberOfOctaves, numberOfScales, sigma0, blurredImagePyramid[imageN], dogImagePyramid[imageN]);
+        showImagePyramid(blurredImagePyramid[imageN]);
 
         vector<Mat> kptLocations(numberOfOctaves);
-        extractKeypoints(dogImagePyramid[imageN], constrastThreshold, numberOfOctaves, kptLocations);
+        //extractKeypoints(dogImagePyramid[imageN], constrastThreshold, numberOfOctaves, kptLocations);
         
         // Write code to compute:
         // 4)    Compute the keypoints with non-maximum suppression and

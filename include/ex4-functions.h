@@ -69,6 +69,39 @@ Mat rotateImage(Mat inputImage, int angle)
     return rotatedImage;
 }
 
+void makeSIFTPyramids(Mat& inputImage, int numberOfOctaves, int numberOfScales, double sigma0, vector<vector<Mat>> &blurredImagePyramid, vector<vector<Mat>> &dogImagePyramid)
+{
+    for (int octaveN = 0; octaveN < numberOfOctaves-1; octaveN++)                               // Loop over the number of ocatves for each image
+    {
+        for (int scaleN = -1; scaleN < numberOfScales+2; scaleN++)                              // Loop over the number of scales for each image
+        {
+            Mat tempImage;                                                                      // Define a temporary image
+            resize(inputImage, tempImage, Size(), pow(2, -octaveN), pow(2, -octaveN));          // Resize the image with the given rescale factor
+            double sigma = sigma0 * pow(2, (double)scaleN/(double)numberOfScales);              // Compute sigma for smoothing
+            GaussianBlur(tempImage, tempImage, Size(0, 0), sigma, sigma);                       // Compute the Gaussian blur
+            blurredImagePyramid[octaveN][scaleN+1] = tempImage;                                 // Put the blurred image into the image pyramid
+
+            if (scaleN != -1)                                                                   // Wait until the first iteration is over
+            {
+                dogImagePyramid[octaveN][scaleN] = blurredImagePyramid[octaveN][scaleN] - blurredImagePyramid[octaveN][scaleN+1];   // Compute the DoG
+            }
+        }
+    }
+}
+
+void showImagePyramid(vector<vector<Mat>> &inputImagePyramid) // Function to show a pyramid of images (images are in a vector)
+{
+    cout << "Vector Size: " << inputImagePyramid[0].size() << endl;
+    Mat outputImage;
+    for (int rows = 0; rows < inputImagePyramid[0].size(); rows++)
+    {
+        /* code */
+    }
+    
+    hconcat(inputImagePyramid, outputImage);
+    imshow("Row 0: ", outputImage);
+}
+
 void extractKeypoints(vector<vector<Mat>> &dogImagePyramid, double constrastThreshold, int numberOfOctaves, vector<Mat> &kptLocations)
 {
     for (int octaveIdx = 0; octaveIdx < numberOfOctaves-1; octaveIdx++)
