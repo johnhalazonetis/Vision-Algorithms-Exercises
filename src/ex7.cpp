@@ -14,7 +14,7 @@ using namespace cv;
 
 // Include the functions that were made during exercises
 #include "base-functions.h"
-#include "ex5-functions.h"
+#include "ex7-functions.h"
 
 int main(int argc, char** argv)
 {

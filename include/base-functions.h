@@ -221,6 +221,6 @@ void drawPointCloud(Mat& image, Vec2i *pointCloud)
 {
     for (int pointN = 0; pointN < sizeof(pointCloud); pointN++)
     {
-        circle(image, Point(pointCloud[pointN]), 2.5, Scalar(0, 255, 255), FILLED, LINE_8);
+        circle(image, Point(pointCloud[pointN]), 2, Scalar(0, 255, 255), FILLED, LINE_8);
     }
 }

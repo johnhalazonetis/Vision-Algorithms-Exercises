@@ -1,3 +1,5 @@
+xcode-select --install
+
 mkdir ~/install_opencv && cd ~/install_opencv
 git clone https://github.com/opencv/opencv.git
 git clone https://github.com/opencv/opencv_contrib.git
