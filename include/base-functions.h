@@ -1,3 +1,9 @@
+void showImage(string windowName, Mat& image)   // Function to show image in scalable window
+{
+    namedWindow(windowName, WINDOW_KEEPRATIO);  // Create a window
+    imshow(windowName, image);                  // Show our image inside the created window.
+}
+
 Matx33d getCalibrationMatrix(string filename)    // Function to read calibration matrix from txt file
 {
     Matx33d calibrationMatrix;

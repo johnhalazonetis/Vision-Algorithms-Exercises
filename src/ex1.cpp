@@ -17,7 +17,7 @@ int main(int argc, char** argv)
 {
     // Initialisation of main:
 
-    string datapath = "/home/john/Nextcloud/Me/ETH/Master 4 (Fall 2020)/Vision Algorithms/Exercises/Exercise 1 - Augmented Reality Wireframe Cube/data/";     // Define path to data (for exercise 1)
+    string datapath = "../data/exercise1/";     // Define path to data (for exercise 1)
 
     Matx33d calibrationMatrix = getCalibrationMatrix(datapath + "K.txt"); // Call function to read the calibration matrix file and make the calibration matrix
 
@@ -35,8 +35,10 @@ int main(int argc, char** argv)
     double distortionArray[1];
     getLensDistortionValues(datapath + "D.txt", 1, 2, distortionArray);
 
-    VideoCapture cap(datapath + "images/img_%04d.jpg");                 // Start video capture from images found in folder
-    while( cap.isOpened() )                                             // Loop while we are receiving images from folder
+    namedWindow("Output", WINDOW_KEEPRATIO);
+
+    VideoCapture cap(datapath + "images/img_%04d.jpg");                     // Start video capture from images found in folder
+    while( cap.isOpened() )                                                 // Loop while we are receiving images from folder
     {
         Mat image;                                                          // Define image as matrix
         cap.read(image);                                                    // Read image
@@ -47,19 +49,19 @@ int main(int argc, char** argv)
             return -1;                                                      // End program
         }
 
-        Vec6d currentPose = getPose(poseFile);                           // Call function to get the current pose
-        transformationMatrix = makeTransforationMatrix(currentPose);     // Call function to read the poses and create a transformation matrix
+        Vec6d currentPose = getPose(poseFile);                              // Call function to get the current pose
+        transformationMatrix = makeTransforationMatrix(currentPose);        // Call function to read the poses and create a transformation matrix
         
         outputCameraPoints = projectPoints(calibrationMatrix, transformationMatrix, inputWorldPoints, distortionArray); // Call function to project points from world frame to camera frame
         
         drawCube(image, cubeOrigin, cubeLength, calibrationMatrix, transformationMatrix, distortionArray);              // Call function to draw cube at given cubeOrigin
 
-        imshow("Display Image", image);                                     // Show the input image
+        imshow("Output", image);                                            // Show the input image
 
         waitKey(17);                                                        // Wait for X ms
     }
-    poseFile.close();                                                   // Close the poses file
+    poseFile.close();                                                       // Close the poses file
 
-    destroyAllWindows();                                                // Close all windows
+    destroyAllWindows();                                                    // Close all windows
     return 0;
 }
