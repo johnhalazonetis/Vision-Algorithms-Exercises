@@ -1,3 +1,26 @@
+#include <iomanip>
+
+Mat loopImage(int& counter, int numberOfDigits, string datapath, string imageFormat)
+{
+    counter++;  // Add 1 to counter (to read the next image)
+    
+    // Make a string of a numbered image
+    ostringstream ss;
+	ss << std::setw(numberOfDigits) << std::setfill('0') << counter;
+	string s2(ss.str());
+	string imageName = datapath + s2 + imageFormat;
+    
+    Mat image = imread(imageName);  // Read the image
+
+    if (!image.data)    // If the image does not exist, end the program
+	{
+		cout << endl << "Program End -> " << "No more images in folder." << endl << endl;
+		EXIT_FAILURE;
+	}
+
+    return image;
+}
+
 void showImage(string windowName, Mat& image)   // Function to show image in scalable window
 {
     namedWindow(windowName, WINDOW_KEEPRATIO);  // Create a window

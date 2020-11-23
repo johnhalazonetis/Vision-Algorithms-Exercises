@@ -35,19 +35,10 @@ int main(int argc, char** argv)
     double distortionArray[1];
     getLensDistortionValues(datapath + "D.txt", 1, 2, distortionArray);
 
-    namedWindow("Output", WINDOW_KEEPRATIO);
-
-    VideoCapture cap(datapath + "images/img_%04d.jpg");                     // Start video capture from images found in folder
-    while( cap.isOpened() )                                                 // Loop while we are receiving images from folder
+    int counter = 0;
+    while(1)                                                 // Loop while we are receiving images from folder
     {
-        Mat image;                                                          // Define image as matrix
-        cap.read(image);                                                    // Read image
-
-        if (!image.data)                                                    // If statement in case the file cannot be opened or does not exist
-        {
-            printf("No image data \n");
-            return -1;                                                      // End program
-        }
+        Mat image = loopImage(counter, 4, datapath + "images/img_", ".jpg");
 
         Vec6d currentPose = getPose(poseFile);                              // Call function to get the current pose
         transformationMatrix = makeTransforationMatrix(currentPose);        // Call function to read the poses and create a transformation matrix
